@@ -10,8 +10,12 @@
 
 > **Global Solution 2026/2 — FIAP | Disciplina: Java Advanced**  
 > **Tema:** CitizenTech — Tecnologia Cidadã para Resiliência Climática e Zeladoria Urbana  
-> **Aluno Responsável:** **Gabriel Maciel Alves de Oliveira — RM 562795 (Turma 2TDSR)**  
-> **Curso:** Análise e Desenvolvimento de Sistemas (FIAP)
+> **Curso:** Análise e Desenvolvimento de Sistemas (FIAP — Turma 2TDSR)  
+> **Integrantes do Grupo:**  
+> - **Gabriel Maciel** — RM562795  
+> - **Thomas Fontes** — RM562254  
+> - **Vitória Rodrigues Martins** — RM565160  
+> - **Matheus Pereira Molina** — RM563399
 
 ---
 
@@ -604,10 +608,15 @@ alertacom-api/
 
 ---
 
-## 👨‍💻 Autor & Identificação Acadêmica
+## 👨‍💻 Autores & Identificação Acadêmica (Turma 2TDSR)
 
-- **Nome Completo:** Gabriel Maciel Alves de Oliveira
-- **RM:** 562795
-- **Turma:** 2TDSR — Análise e Desenvolvimento de Sistemas
+| Integrante | RM | Turma |
+| :--- | :---: | :---: |
+| **Gabriel Maciel** | `RM562795` | 2TDSR |
+| **Thomas Fontes** | `RM562254` | 2TDSR |
+| **Vitória Rodrigues Martins** | `RM565160` | 2TDSR |
+| **Matheus Pereira Molina** | `RM563399` | 2TDSR |
+
+- **Curso:** Análise e Desenvolvimento de Sistemas
 - **Instituição:** FIAP — Faculdade de Informática e Administração Paulista
 - **Entrega:** Global Solution 2026/2 — Java Advanced (*CitizenTech: AlertaCom*)

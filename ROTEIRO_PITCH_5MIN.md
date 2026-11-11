@@ -2,7 +2,11 @@
 
 > **Global Solution 2026/2 — FIAP | Disciplina: Java Advanced**  
 > **Projeto:** AlertaCom — Plataforma CitizenTech de Resiliência Urbana e Defesa Civil  
-> **Aluno Responsável:** **Gabriel Maciel Alves de Oliveira — RM 562795 (Turma 2TDSR)**  
+> **Integrantes (Turma 2TDSR):**  
+> - **Gabriel Maciel** — RM562795  
+> - **Thomas Fontes** — RM562254  
+> - **Vitória Rodrigues Martins** — RM565160  
+> - **Matheus Pereira Molina** — RM563399  
 > **Duração Alvo:** **4 min 50 seg** (Teto máximo estrito da FIAP: **5 min 00 seg**)  
 > **Link do Vídeo no YouTube:** `[INSERIR_LINK_YOUTUBE_NAO_LISTADO_OU_PUBLICO_AQUI]`
 
@@ -53,10 +57,10 @@ Antes de apertar `REC` no OBS Studio / QuickTime / Loom:
 ### 🔴 BLOCO 1 (0:00 – 0:50) — Gancho e Contextualização do Problema Urbano/Climático
 
 **[TELA — 0:00 a 0:20]**  
-*Exibir a capa do projeto no `README.md` (ou slide inicial) destacando: **AlertaCom — Plataforma CitizenTech de Resiliência Urbana e Defesa Civil**, **Global Solution 2026/2 FIAP**, **Gabriel Maciel Alves de Oliveira — RM 562795 (Turma 2TDSR)**.*
+*Exibir a capa do projeto no `README.md` (ou slide inicial) destacando: **AlertaCom — Plataforma CitizenTech de Resiliência Urbana e Defesa Civil**, **Global Solution 2026/2 FIAP**, e os integrantes da **Turma 2TDSR**: **Gabriel Maciel (RM562795)**, **Thomas Fontes (RM562254)**, **Vitória Rodrigues Martins (RM565160)** e **Matheus Pereira Molina (RM563399)**.*
 
 **[LOCUÇÃO — 0:00 a 0:20]**  
-> "Olá, banca avaliadora da Global Solution FIAP! Eu sou o **Gabriel Maciel Alves de Oliveira, RM 562795, da turma 2TDSR**.  
+> "Olá, banca avaliadora da Global Solution FIAP! Nós somos a equipe do **AlertaCom**, da **turma 2TDSR**, composta por **Gabriel Maciel (RM 562795)**, **Thomas Fontes (RM 562254)**, **Vitória Rodrigues Martins (RM 565160)** e **Matheus Pereira Molina (RM 563399)**.  
 > Todos os anos, quando o período de chuvas intensas atinge São Paulo e as grandes metrópoles brasileiras, assistimos exatamente à mesma tragédia: vias inteiras submersas em minutos, deslizamentos de encostas, quedas de árvores e famílias perdendo tudo."
 
 **[TELA — 0:20 a 0:50]**  
@@ -147,7 +151,7 @@ Antes de apertar `REC` no OBS Studio / QuickTime / Loom:
 ### 🔵 BLOCO 5 (4:25 – 5:00) — Impacto Social e Ambiental (ODS 11 e ODS 13) e Encerramento
 
 **[TELA — 4:25 a 5:00]**  
-*Exibir a tabela de alinhamento com os **ODS 11 e ODS 13 da ONU** e a seção final do `README.md` com os resultados dos testes automatizados (`mvn test -Pe2e` 100% verde) e a identificação completa do aluno: **Gabriel Maciel Alves de Oliveira — RM 562795 — Turma 2TDSR**.*
+*Exibir a tabela de alinhamento com os **ODS 11 e ODS 13 da ONU** e a seção final do `README.md` com os resultados dos testes automatizados (`mvn test -Pe2e` 100% verde) e a identificação completa da equipe (**Turma 2TDSR**: **Gabriel Maciel — RM562795**, **Thomas Fontes — RM562254**, **Vitória Rodrigues Martins — RM565160** e **Matheus Pereira Molina — RM563399**).*
 
 **[LOCUÇÃO — 4:25 a 5:00]**  
 > "Com isso, o AlertaCom entrega impacto direto nos Objetivos de Desenvolvimento Sustentável da ONU: atendemos ao **ODS 11 (Cidades e Comunidades Sustentáveis)** ao dar voz imediata às comunidades periféricas e reduzir drasticamente o tempo de socorro urbano; e cumprimos o **ODS 13 (Ação Contra a Mudança Global do Clima)** ao usar inteligência artificial e arquitetura orientada a eventos para adaptar nossas cidades às emergências climáticas.  

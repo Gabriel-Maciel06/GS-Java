@@ -41,15 +41,15 @@ public class OpenApiConfig {
                                 - **Inteligência Artificial Preventiva (Spring AI Dual-Engine):** Geração de Boletins Preventivos de Defesa Civil contextualizados com dados reais do bairro via **OpenAI ChatClient** e motor de contingência determinístico (**Fallback Offline**).
                                 """)
                         .contact(new Contact()
-                                .name("Gabriel Maciel Alves de Oliveira (RM 562795 - Turma 2TDSR)")
+                                .name("Equipe AlertaCom (2TDSR): Gabriel Maciel (RM562795), Thomas Fontes (RM562254), Vitória Martins (RM565160), Matheus Molina (RM563399)")
                                 .email("rm562795@fiap.com.br")
-                                .url("https://www.fiap.com.br"))
+                                .url("https://github.com/Gabriel-Maciel06/GS-Java"))
                         .license(new License()
                                 .name("MIT License — Global Solution FIAP 2026/2")
                                 .url("https://opensource.org/licenses/MIT")))
                 .externalDocs(new ExternalDocumentation()
                         .description("Documentação Corporativa AlertaCom & Roteiro do Pitch (ODS 11 & ODS 13)")
-                        .url("https://github.com/fiap/alertacom-api"))
+                        .url("https://github.com/Gabriel-Maciel06/GS-Java"))
                 .servers(List.of(
                         new Server()
                                 .url("http://localhost:8080")
