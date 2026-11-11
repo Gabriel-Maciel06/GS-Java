@@ -1,0 +1,92 @@
+# ==============================================================================
+# AlertaCom — Orquestração Completa Docker Compose
+# Global Solution 2026/2 FIAP — Gabriel Maciel Alves de Oliveira (RM 562795)
+# Componentes: Oracle Database 23c Free + RabbitMQ 3.13 Management + AlertaCom API
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Banco de Dados Relacional: Oracle Database 23c Free (Faststart)
+  # ----------------------------------------------------------------------------
+  oracle-db:
+    image: gvenzl/oracle-free:23-slim-faststart
+    container_name: alertacom-oracle-db
+    restart: unless-stopped
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:-alertacom_pwd}
+      APP_USER: ${ORACLE_USER:-alertacom}
+      APP_USER_PASSWORD: ${ORACLE_APP_PASSWORD:-alertacom_pwd}
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    networks:
+      - alertacom-net
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  # ----------------------------------------------------------------------------
+  # 2. Broker de Mensageria Assíncrona: RabbitMQ 3.13 + Management UI
+  # ----------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: alertacom-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # Porta AMQP 0-9-1
+      - "15672:15672" # Painel Web RabbitMQ Management (http://localhost:15672)
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - alertacom-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ----------------------------------------------------------------------------
+  # 3. Aplicação Backend Corporativa: AlertaCom API (Spring Boot 3.3.5 / Java 21)
+  # ----------------------------------------------------------------------------
+  alertacom-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alertacom-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle-db:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: ${ORACLE_USER:-alertacom}
+      SPRING_DATASOURCE_PASSWORD: ${ORACLE_APP_PASSWORD:-alertacom_pwd}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-mock-key}
+      JWT_SECRET: ${JWT_SECRET:-AlertaComSuperChaveSecretaGlobalSolutionFIAP2026}
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - alertacom-net
+
+networks:
+  alertacom-net:
+    driver: bridge
+
+volumes:
+  oracle_data:
+  rabbitmq_data:

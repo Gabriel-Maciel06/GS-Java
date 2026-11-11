@@ -1,0 +1,74 @@
+# ==============================================================================
+# .gitignore — Repositório AlertaCom API (Java 21 / Maven / Spring Boot 3.3.5)
+# Global Solution 2026/2 FIAP — Gabriel Maciel Alves de Oliveira (RM 562795)
+# ==============================================================================
+
+# Artefatos de Build Maven & Java
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# IDEs & Editores (IntelliJ IDEA, Eclipse, VS Code, NetBeans)
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.settings/
+.project
+.classpath
+.vscode/
+nbproject/
+/build/
+
+# Sistema Operacional & Ambiente Local
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+
+# Diretórios de Trabalho & Vault Local (Fora do Escopo do Repositório AlertaCom)
+/.agents/
+/.pytest_cache/
+/.taste-skill/
+/01-Faculdade-FIAP/
+/02-Isapel-Comercial/
+/03-Isapel-Videos/
+/04-Projetos-Apps/
+/_AI-Log/
+/config/
+/escritorio-agentes/
+/isapel-crm/
+/mm-paper-logo/
+/mmpaper/
+/mmpaper*
+/output/
+/reports/
+/scripts/
+/video_editor_pipeline/
+/*.command
+/start.sh
+/COMO_USAR.md
+/ORIGINAL_REQUEST.md
+/PROJECT.md
+/TEST_INFRA.md
+/TEST_READY.md

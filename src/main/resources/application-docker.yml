@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:oracle:thin:@oracle-db:1521/FREEPDB1
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: alertacom
+    password: alertacom
+  jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        auto-startup: true
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:mock-key-docker}

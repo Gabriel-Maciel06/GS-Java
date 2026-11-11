@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: alertacom-api
+  profiles:
+    active: dev
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+jwt:
+  secret: AlertaComSuperChaveSecretaGlobalSolutionFIAP2026
+  expiration-hours: 24
+
+api:
+  security:
+    token:
+      secret: ${jwt.secret}
+
+server:
+  port: 8080
+  error:
+    include-message: always
