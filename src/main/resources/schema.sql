@@ -7,6 +7,7 @@
 -- ----------------------------------------------------------------------------
 -- 0. LIMPEZA PRÉVIA IDEMPOTENTE (Ordem inversa de dependência de chaves)
 -- ----------------------------------------------------------------------------
+DROP SEQUENCE IF EXISTS SEQ_PROTOCOLO_NUMERO;
 DROP TABLE IF EXISTS TB_PROTOCOLO_DEFESA_CIVIL CASCADE CONSTRAINTS;
 DROP TABLE IF EXISTS TB_OCORRENCIA CASCADE CONSTRAINTS;
 DROP TABLE IF EXISTS TB_CIDADAO CASCADE CONSTRAINTS;
@@ -89,3 +90,6 @@ CREATE TABLE TB_PROTOCOLO_DEFESA_CIVIL (
 );
 
 CREATE INDEX IDX_PROTOCOLO_NUMERO ON TB_PROTOCOLO_DEFESA_CIVIL (numero_protocolo);
+
+-- Sequence para numeração oficial concorrente e atômica da Defesa Civil
+CREATE SEQUENCE SEQ_PROTOCOLO_NUMERO START WITH 1 INCREMENT BY 1 NOCACHE;

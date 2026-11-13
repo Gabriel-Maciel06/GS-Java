@@ -43,10 +43,10 @@ public enum StatusOcorrencia {
             return false;
         }
         return switch (this) {
-            case ABERTA -> novoStatus == EM_ANALISE || novoStatus == CANCELADA;
-            case EM_ANALISE -> novoStatus == ENCAMINHADA_DEFESA_CIVIL || novoStatus == CANCELADA;
-            case ENCAMINHADA_DEFESA_CIVIL -> novoStatus == EM_ATENDIMENTO;
-            case EM_ATENDIMENTO -> novoStatus == RESOLVIDA;
+            case ABERTA -> novoStatus == EM_ANALISE || novoStatus == ENCAMINHADA_DEFESA_CIVIL || novoStatus == CANCELADA;
+            case EM_ANALISE -> novoStatus == ENCAMINHADA_DEFESA_CIVIL || novoStatus == EM_ATENDIMENTO || novoStatus == RESOLVIDA || novoStatus == CANCELADA;
+            case ENCAMINHADA_DEFESA_CIVIL -> novoStatus == EM_ATENDIMENTO || novoStatus == RESOLVIDA || novoStatus == CANCELADA;
+            case EM_ATENDIMENTO -> novoStatus == RESOLVIDA || novoStatus == CANCELADA;
             case RESOLVIDA, CANCELADA -> false; // Estados terminais são imutáveis
         };
     }

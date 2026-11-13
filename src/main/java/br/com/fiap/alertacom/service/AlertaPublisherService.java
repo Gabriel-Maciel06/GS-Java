@@ -9,6 +9,8 @@ import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.text.Normalizer;
 import java.time.LocalDateTime;
@@ -29,12 +31,12 @@ public class AlertaPublisherService {
     }
 
     /**
-     * Publica um evento de alerta crítico a partir de uma entidade Ocorrencia.
-     * Caso o broker RabbitMQ esteja indisponível, captura a exceção e registra um aviso
-     * sem interromper a transação principal do banco de dados.
+     * Listener desacoplado acionado imediatamente após o COMMIT da transação de banco.
      */
-    public boolean publicarAlertaCritico(Ocorrencia ocorrencia) {
-        if (ocorrencia == null || !ocorrencia.isCriticaOuAlta()) {
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    public boolean publicarAlertaCritico(AlertaCriticoEvent evento) {
+        if (evento == null) {
+            log.warn("Evento de alerta crítico nulo recebido para publicação AMQP. Ignorando.");
             return false;
         }
 
@@ -44,25 +46,37 @@ public class AlertaPublisherService {
         }
 
         try {
-            String routingKey = construirRoutingKey(ocorrencia.getBairro());
-            AlertaCriticoEvent evento = construirEvento(ocorrencia);
-
+            String routingKey = construirRoutingKey(evento.bairro());
             rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_ALERTA, routingKey, evento);
             log.info("🚨 [AMQP EVENT] Evento crítico despachado: Ocorrência #{} na rota '{}'",
-                    ocorrencia.getId(), routingKey);
+                    evento.ocorrenciaId(), routingKey);
             return true;
         } catch (AmqpException e) {
             log.warn("Falha de conexão com RabbitMQ para ocorrência #{}. Transação do banco de dados mantida. Erro: {}",
-                    ocorrencia.getId(), e.getMessage());
+                    evento.ocorrenciaId(), e.getMessage());
             return false;
         } catch (Exception e) {
             log.warn("Erro inesperado na publicação AMQP para ocorrência #{}: {}",
-                    ocorrencia.getId(), e.getMessage());
+                    evento.ocorrenciaId(), e.getMessage());
             return false;
         }
     }
 
+    /**
+     * Sobrecarga de compatibilidade para publicação direta a partir de entidade Ocorrencia.
+     */
+    public boolean publicarAlertaCritico(Ocorrencia ocorrencia) {
+        if (ocorrencia == null || !ocorrencia.isCriticaOuAlta()) {
+            return false;
+        }
+        AlertaCriticoEvent evento = construirEvento(ocorrencia);
+        return publicarAlertaCritico(evento);
+    }
+
     public AlertaCriticoEvent construirEvento(Ocorrencia oc) {
+        if (oc == null) {
+            return null;
+        }
         return new AlertaCriticoEvent(
                 oc.getId(),
                 oc.getTitulo(),

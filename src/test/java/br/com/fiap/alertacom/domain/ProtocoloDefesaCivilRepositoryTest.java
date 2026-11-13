@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 class ProtocoloDefesaCivilRepositoryTest {
 
@@ -40,6 +42,10 @@ class ProtocoloDefesaCivilRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        entityManager.getEntityManager()
+                .createNativeQuery("CREATE SEQUENCE IF NOT EXISTS SEQ_PROTOCOLO_NUMERO START WITH 1 INCREMENT BY 1 NOCACHE")
+                .executeUpdate();
+
         Cidadao cidadao = new Cidadao("Gestor Defesa", "gestor.defesa@prefeitura.sp.gov.br", "11999990000", "Sé", "hashGestor", "ROLE_GESTOR");
         entityManager.persistAndFlush(cidadao);
 
@@ -160,5 +166,15 @@ class ProtocoloDefesaCivilRepositoryTest {
         entityManager.clear();
 
         assertThat(protocoloRepository.findById(protocoloId)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Deve obter próximo número sequencial da sequence de protocolo")
+    void testObterProximoNumeroSequencial() {
+        Long seq1 = protocoloRepository.obterProximoNumeroSequencial();
+        Long seq2 = protocoloRepository.obterProximoNumeroSequencial();
+
+        assertThat(seq1).isNotNull().isPositive();
+        assertThat(seq2).isNotNull().isGreaterThan(seq1);
     }
 }

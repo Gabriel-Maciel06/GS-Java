@@ -2,6 +2,7 @@ package br.com.fiap.alertacom.service;
 
 import br.com.fiap.alertacom.domain.model.Ocorrencia;
 import br.com.fiap.alertacom.domain.model.ProtocoloDefesaCivil;
+import br.com.fiap.alertacom.domain.model.StatusOcorrencia;
 import br.com.fiap.alertacom.domain.repository.OcorrenciaRepository;
 import br.com.fiap.alertacom.domain.repository.ProtocoloDefesaCivilRepository;
 import br.com.fiap.alertacom.dto.request.ConcluirProtocoloRequest;
@@ -35,6 +36,13 @@ public class ProtocoloService {
         Ocorrencia ocorrencia = ocorrenciaRepository.findById(request.ocorrenciaId())
             .orElseThrow(() -> new ResourceNotFoundException("Ocorrência não encontrada com o ID: " + request.ocorrenciaId()));
 
+        if (ocorrencia.getStatus().isTerminal()) {
+            throw new RegraNegocioException(String.format(
+                "Não é possível emitir protocolo para a ocorrência ID %d no status terminal '%s'",
+                ocorrencia.getId(), ocorrencia.getStatus()
+            ));
+        }
+
         if (protocoloRepository.existsByOcorrenciaId(request.ocorrenciaId())) {
             throw new RegraNegocioException("A ocorrência ID " + request.ocorrenciaId() + " já possui protocolo oficial da Defesa Civil emitido.");
         }
@@ -51,6 +59,7 @@ public class ProtocoloService {
 
         ocorrencia.vincularProtocolo(protocolo);
         ProtocoloDefesaCivil salvo = protocoloRepository.save(protocolo);
+        ocorrenciaRepository.save(ocorrencia);
 
         return ProtocoloResponse.fromEntity(salvo);
     }
@@ -73,7 +82,8 @@ public class ProtocoloService {
 
     @Transactional
     public ProtocoloResponse concluir(Long id, ConcluirProtocoloRequest request) {
-        ProtocoloDefesaCivil protocolo = protocoloRepository.findById(id)
+        ProtocoloDefesaCivil protocolo = protocoloRepository.findByIdWithDetails(id)
+            .or(() -> protocoloRepository.findById(id))
             .orElseThrow(() -> new ResourceNotFoundException("Protocolo não encontrado com o ID: " + id));
 
         if (protocolo.getDataConclusao() != null) {
@@ -83,13 +93,24 @@ public class ProtocoloService {
         protocolo.concluirAtendimento(request.parecerFinal());
         ProtocoloDefesaCivil salvo = protocoloRepository.save(protocolo);
 
+        if (protocolo.getOcorrencia() != null) {
+            protocolo.getOcorrencia().setStatus(StatusOcorrencia.RESOLVIDA);
+            ocorrenciaRepository.save(protocolo.getOcorrencia());
+        }
+
         return ProtocoloResponse.fromEntity(salvo);
     }
 
     private synchronized String gerarNumeroProtocoloUnico() {
         int ano = LocalDateTime.now().getYear();
-        long totalExistentes = protocoloRepository.count();
-        long sequencial = totalExistentes + 1;
+        long sequencial;
+        try {
+            Long proximo = protocoloRepository.obterProximoNumeroSequencial();
+            sequencial = (proximo != null && proximo > 0) ? proximo : (protocoloRepository.count() + 1);
+        } catch (Exception e) {
+            sequencial = protocoloRepository.count() + 1;
+        }
+
         String numero = String.format("DEF-%d-%05d", ano, sequencial);
 
         while (protocoloRepository.existsByNumeroProtocolo(numero)) {

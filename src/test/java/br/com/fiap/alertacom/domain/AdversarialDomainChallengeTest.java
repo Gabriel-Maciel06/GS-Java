@@ -88,14 +88,20 @@ class AdversarialDomainChallengeTest {
         @Test
         @DisplayName("Deve validar a matriz completa de transições permitidas vs proibidas (36 combinações)")
         void testMatrizCompletaDeTransicoes() {
-            // Apenas 6 transições legais são permitidas no modelo de domínio
+            // 12 transições legais são permitidas no modelo de domínio de defesa civil e zeladoria
             Set<String> transicoesValidas = Set.of(
                     "ABERTA->EM_ANALISE",
+                    "ABERTA->ENCAMINHADA_DEFESA_CIVIL",
                     "ABERTA->CANCELADA",
                     "EM_ANALISE->ENCAMINHADA_DEFESA_CIVIL",
+                    "EM_ANALISE->EM_ATENDIMENTO",
+                    "EM_ANALISE->RESOLVIDA",
                     "EM_ANALISE->CANCELADA",
                     "ENCAMINHADA_DEFESA_CIVIL->EM_ATENDIMENTO",
-                    "EM_ATENDIMENTO->RESOLVIDA"
+                    "ENCAMINHADA_DEFESA_CIVIL->RESOLVIDA",
+                    "ENCAMINHADA_DEFESA_CIVIL->CANCELADA",
+                    "EM_ATENDIMENTO->RESOLVIDA",
+                    "EM_ATENDIMENTO->CANCELADA"
             );
 
             for (StatusOcorrencia origem : StatusOcorrencia.values()) {
@@ -162,14 +168,13 @@ class AdversarialDomainChallengeTest {
         }
 
         @Test
-        @DisplayName("Deve rejeitar pulo de etapas (ex: ABERTA diretamente para RESOLVIDA ou EM_ATENDIMENTO)")
+        @DisplayName("Deve rejeitar pulo de etapas inválidas (ex: ABERTA diretamente para RESOLVIDA ou EM_ATENDIMENTO)")
         void testRejeitarSaltoDeEtapas() {
             Ocorrencia oc = new Ocorrencia();
             oc.setStatus(StatusOcorrencia.ABERTA);
 
             assertThrows(IllegalStateException.class, () -> oc.transicionarStatus(StatusOcorrencia.RESOLVIDA));
             assertThrows(IllegalStateException.class, () -> oc.transicionarStatus(StatusOcorrencia.EM_ATENDIMENTO));
-            assertThrows(IllegalStateException.class, () -> oc.transicionarStatus(StatusOcorrencia.ENCAMINHADA_DEFESA_CIVIL));
         }
 
         @Test
@@ -208,15 +213,17 @@ class AdversarialDomainChallengeTest {
         }
 
         @Test
-        @DisplayName("Deve rejeitar cancelamento após despacho para a Defesa Civil ou início de atendimento")
-        void testRejeitarCancelamentoAposDespacho() {
+        @DisplayName("Deve permitir cancelamento a partir de ENCAMINHADA_DEFESA_CIVIL e EM_ATENDIMENTO")
+        void testPermitirCancelamentoAposDespacho() {
             Ocorrencia oc1 = new Ocorrencia();
             oc1.setStatus(StatusOcorrencia.ENCAMINHADA_DEFESA_CIVIL);
-            assertThrows(IllegalStateException.class, () -> oc1.transicionarStatus(StatusOcorrencia.CANCELADA));
+            oc1.transicionarStatus(StatusOcorrencia.CANCELADA);
+            assertThat(oc1.getStatus()).isEqualTo(StatusOcorrencia.CANCELADA);
 
             Ocorrencia oc2 = new Ocorrencia();
             oc2.setStatus(StatusOcorrencia.EM_ATENDIMENTO);
-            assertThrows(IllegalStateException.class, () -> oc2.transicionarStatus(StatusOcorrencia.CANCELADA));
+            oc2.transicionarStatus(StatusOcorrencia.CANCELADA);
+            assertThat(oc2.getStatus()).isEqualTo(StatusOcorrencia.CANCELADA);
         }
 
         @Test

@@ -85,6 +85,9 @@ class AdversarialMilestone2BusinessRulesTest {
     @Autowired
     private GlobalExceptionHandler globalExceptionHandler;
 
+    @Autowired
+    private org.springframework.transaction.PlatformTransactionManager transactionManager;
+
     @MockBean
     private RabbitTemplate rabbitTemplate;
 
@@ -197,6 +200,35 @@ class AdversarialMilestone2BusinessRulesTest {
                     Ocorrencia inalterada = ocorrenciaRepository.findById(oc.getId()).orElseThrow();
                     assertThat(inalterada.getStatus()).isEqualTo(status);
                 }
+            }
+        }
+
+        @Test
+        @DisplayName("ADV-FSM-4: Usuário com ROLE_GESTOR NÃO pode burlar a máquina de estados (ex: ABERTA -> RESOLVIDA)")
+        void testGestorCannotBypassStateMachineToResolvida() {
+            org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+                    new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                            "gestor@alertacom.com.br",
+                            "senha",
+                            java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_GESTOR"))
+                    )
+            );
+            try {
+                Ocorrencia oc = criarOcorrenciaEmStatus(StatusOcorrencia.ABERTA);
+                AtualizarStatusRequest request = new AtualizarStatusRequest(
+                        StatusOcorrencia.RESOLVIDA,
+                        "Tentativa de bypass pelo Gestor"
+                );
+
+                assertThatThrownBy(() -> ocorrenciaService.transicionarStatus(oc.getId(), request))
+                        .as("Gestor não pode pular direto de ABERTA para RESOLVIDA sem passar pelas etapas regulamentares")
+                        .isInstanceOf(RegraNegocioException.class)
+                        .hasMessageContaining("Transição de status inválida");
+
+                Ocorrencia noBanco = ocorrenciaRepository.findById(oc.getId()).orElseThrow();
+                assertThat(noBanco.getStatus()).isEqualTo(StatusOcorrencia.ABERTA);
+            } finally {
+                org.springframework.security.core.context.SecurityContextHolder.clearContext();
             }
         }
     }
@@ -671,6 +703,41 @@ class AdversarialMilestone2BusinessRulesTest {
                     eq("alerta.critico.vila_sao_jose_e_pompeia"),
                     any(AlertaCriticoEvent.class)
             );
+        }
+
+        @Test
+        @DisplayName("ADV-MQ-7: Rollback no banco de dados NUNCA deve publicar evento no RabbitMQ (@TransactionalEventListener AFTER_COMMIT)")
+        void testDatabaseRollbackSuppressesAmqpPublication() {
+            org.springframework.transaction.support.TransactionTemplate txTemplate =
+                    new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+
+            OcorrenciaRequest request = new OcorrenciaRequest(
+                    "Deslizamento Crítico que Sofrerá Rollback",
+                    "Descrição detalhada para teste de rollback transacional",
+                    CategoriaOcorrencia.DESLIZAMENTO,
+                    SeveridadeOcorrencia.CRITICA,
+                    -23.55052,
+                    -46.63330,
+                    "Rua do Rollback, 123",
+                    "Vila Prudente",
+                    cidadaoPadrao.getId()
+            );
+
+            assertThatThrownBy(() -> {
+                txTemplate.execute(status -> {
+                    ocorrenciaService.criar(request);
+                    status.setRollbackOnly();
+                    throw new RuntimeException("Simulando falha transacional após criar ocorrência crítica");
+                });
+            }).isInstanceOf(RuntimeException.class)
+              .hasMessageContaining("Simulando falha transacional");
+
+            // Verifica que a ocorrência NÃO foi gravada no banco
+            assertThat(ocorrenciaRepository.findAll())
+                    .noneMatch(oc -> oc.getTitulo().equals("Deslizamento Crítico que Sofrerá Rollback"));
+
+            // E comprovação empírica máxima: RabbitTemplate NUNCA foi chamado
+            verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
         }
     }
 

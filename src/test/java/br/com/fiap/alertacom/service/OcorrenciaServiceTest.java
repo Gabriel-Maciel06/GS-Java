@@ -15,8 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.amqp.AmqpConnectException;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -41,7 +40,10 @@ class OcorrenciaServiceTest {
     private CidadaoRepository cidadaoRepository;
 
     @Mock
-    private RabbitTemplate rabbitTemplate;
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private AlertaPublisherService alertaPublisherService;
 
     @InjectMocks
     private OcorrenciaService ocorrenciaService;
@@ -90,7 +92,7 @@ class OcorrenciaServiceTest {
 
         verify(cidadaoRepository, times(1)).findById(1L);
         verify(ocorrenciaRepository, times(1)).save(any(Ocorrencia.class));
-        verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -123,18 +125,28 @@ class OcorrenciaServiceTest {
                 .dataCriacao(LocalDateTime.now())
                 .build();
 
+        AlertaCriticoEvent eventoMock = new AlertaCriticoEvent(
+                200L,
+                request.titulo(),
+                "Vila Prudente",
+                "CRITICA",
+                "DESLIZAMENTO",
+                request.descricao(),
+                "Maria",
+                null,
+                null,
+                LocalDateTime.now()
+        );
+
         when(ocorrenciaRepository.save(any(Ocorrencia.class))).thenReturn(salva);
+        when(alertaPublisherService.construirEvento(salva)).thenReturn(eventoMock);
 
         OcorrenciaResponse response = ocorrenciaService.criar(request);
 
         assertThat(response).isNotNull();
         assertThat(response.severidade()).isEqualTo(SeveridadeOcorrencia.CRITICA);
 
-        verify(rabbitTemplate, times(1)).convertAndSend(
-                eq("alerta.exchange"),
-                eq("alerta.critico.vila_prudente"),
-                any(AlertaCriticoEvent.class)
-        );
+        verify(eventPublisher, times(1)).publishEvent(eventoMock);
     }
 
     @Test
@@ -168,15 +180,16 @@ class OcorrenciaServiceTest {
                 .build();
 
         when(ocorrenciaRepository.save(any(Ocorrencia.class))).thenReturn(salva);
-        doThrow(new AmqpConnectException(new Exception("Connection refused")))
-                .when(rabbitTemplate).convertAndSend(anyString(), anyString(), any(Object.class));
+        when(alertaPublisherService.construirEvento(salva)).thenReturn(new AlertaCriticoEvent(
+                300L, request.titulo(), "Ipiranga", "ALTA", "ALAGAMENTO", request.descricao(), "Pedro", null, null, null
+        ));
 
-        // Não deve propagar a exceção de AMQP
         OcorrenciaResponse response = ocorrenciaService.criar(request);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(300L);
         verify(ocorrenciaRepository, times(1)).save(any(Ocorrencia.class));
+        verify(eventPublisher, times(1)).publishEvent(any(AlertaCriticoEvent.class));
     }
 
     @Test

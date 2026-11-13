@@ -19,6 +19,7 @@ import java.util.Objects;
         @UniqueConstraint(name = "UK_PROTOCOLO_OCORRENCIA", columnNames = {"ocorrencia_id"})
     }
 )
+@SequenceGenerator(name = "seq_protocolo_gen", sequenceName = "SEQ_PROTOCOLO_NUMERO", allocationSize = 1)
 @Builder
 @AllArgsConstructor
 public class ProtocoloDefesaCivil implements Serializable {

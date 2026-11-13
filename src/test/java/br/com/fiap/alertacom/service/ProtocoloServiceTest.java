@@ -84,6 +84,7 @@ class ProtocoloServiceTest {
         assertThat(response.equipeResponsavel()).isEqualTo("Equipe Tática Bravo");
         assertThat(ocorrencia.getStatus()).isEqualTo(StatusOcorrencia.ENCAMINHADA_DEFESA_CIVIL);
 
+        verify(ocorrenciaRepository, times(1)).save(ocorrencia);
         verify(protocoloRepository, times(1)).save(any(ProtocoloDefesaCivil.class));
     }
 
@@ -211,6 +212,7 @@ class ProtocoloServiceTest {
         assertThat(response.ocorrenciaStatus()).isEqualTo("RESOLVIDA");
 
         verify(protocoloRepository, times(1)).save(protocolo);
+        verify(ocorrenciaRepository, times(1)).save(oc);
     }
 
     @Test
@@ -230,5 +232,113 @@ class ProtocoloServiceTest {
                 .hasMessageContaining("já foi concluído anteriormente");
 
         verify(protocoloRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar RegraNegocioException ao tentar emitir protocolo para ocorrência já RESOLVIDA")
+    void deveLancarRegraNegocioExceptionAoEmitirProtocoloParaOcorrenciaResolvida() {
+        Ocorrencia ocorrencia = Ocorrencia.builder()
+                .id(10L)
+                .status(StatusOcorrencia.RESOLVIDA)
+                .build();
+
+        ProtocoloRequest request = new ProtocoloRequest(
+                "Equipe Tática",
+                "Tentativa de emissão inválida",
+                LocalDateTime.now().plusHours(2),
+                10L
+        );
+
+        when(ocorrenciaRepository.findById(10L)).thenReturn(Optional.of(ocorrencia));
+
+        assertThatThrownBy(() -> protocoloService.emitir(request))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("status terminal 'RESOLVIDA'");
+
+        verify(protocoloRepository, never()).save(any());
+        verify(ocorrenciaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar RegraNegocioException ao tentar emitir protocolo para ocorrência CANCELADA")
+    void deveLancarRegraNegocioExceptionAoEmitirProtocoloParaOcorrenciaCancelada() {
+        Ocorrencia ocorrencia = Ocorrencia.builder()
+                .id(10L)
+                .status(StatusOcorrencia.CANCELADA)
+                .build();
+
+        ProtocoloRequest request = new ProtocoloRequest(
+                "Equipe Tática",
+                "Tentativa de emissão inválida",
+                LocalDateTime.now().plusHours(2),
+                10L
+        );
+
+        when(ocorrenciaRepository.findById(10L)).thenReturn(Optional.of(ocorrencia));
+
+        assertThatThrownBy(() -> protocoloService.emitir(request))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("status terminal 'CANCELADA'");
+
+        verify(protocoloRepository, never()).save(any());
+        verify(ocorrenciaRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve gerar número de protocolo utilizando sequence do banco")
+    void deveGerarNumeroProtocoloUtilizandoSequenceDoBanco() {
+        Ocorrencia ocorrencia = Ocorrencia.builder()
+                .id(20L)
+                .status(StatusOcorrencia.ABERTA)
+                .build();
+
+        ProtocoloRequest request = new ProtocoloRequest(
+                "Equipe Sequence",
+                "Teste com Sequence Oracle",
+                LocalDateTime.now().plusHours(1),
+                20L
+        );
+
+        when(ocorrenciaRepository.findById(20L)).thenReturn(Optional.of(ocorrencia));
+        when(protocoloRepository.existsByOcorrenciaId(20L)).thenReturn(false);
+        when(protocoloRepository.obterProximoNumeroSequencial()).thenReturn(42L);
+        when(protocoloRepository.existsByNumeroProtocolo(anyString())).thenReturn(false);
+        when(protocoloRepository.save(any(ProtocoloDefesaCivil.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ProtocoloResponse response = protocoloService.emitir(request);
+
+        assertThat(response).isNotNull();
+        int ano = LocalDateTime.now().getYear();
+        assertThat(response.numeroProtocolo()).isEqualTo(String.format("DEF-%d-00042", ano));
+        verify(protocoloRepository, times(1)).obterProximoNumeroSequencial();
+    }
+
+    @Test
+    @DisplayName("Deve aplicar fallback gracioso para count + 1 quando sequence do banco falhar")
+    void deveAplicarFallbackGraciosoQuandoSequenceFalhar() {
+        Ocorrencia ocorrencia = Ocorrencia.builder()
+                .id(30L)
+                .status(StatusOcorrencia.ABERTA)
+                .build();
+
+        ProtocoloRequest request = new ProtocoloRequest(
+                "Equipe Fallback",
+                "Teste de fallback",
+                LocalDateTime.now().plusHours(1),
+                30L
+        );
+
+        when(ocorrenciaRepository.findById(30L)).thenReturn(Optional.of(ocorrencia));
+        when(protocoloRepository.existsByOcorrenciaId(30L)).thenReturn(false);
+        when(protocoloRepository.obterProximoNumeroSequencial()).thenThrow(new RuntimeException("Sequence indisponível"));
+        when(protocoloRepository.count()).thenReturn(15L);
+        when(protocoloRepository.existsByNumeroProtocolo(anyString())).thenReturn(false);
+        when(protocoloRepository.save(any(ProtocoloDefesaCivil.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ProtocoloResponse response = protocoloService.emitir(request);
+
+        assertThat(response).isNotNull();
+        int ano = LocalDateTime.now().getYear();
+        assertThat(response.numeroProtocolo()).isEqualTo(String.format("DEF-%d-00016", ano));
     }
 }

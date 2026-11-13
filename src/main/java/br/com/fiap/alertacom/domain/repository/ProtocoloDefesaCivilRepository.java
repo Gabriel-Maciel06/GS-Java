@@ -100,4 +100,13 @@ public interface ProtocoloDefesaCivilRepository extends JpaRepository<ProtocoloD
            "JOIN FETCH o.cidadao " +
            "WHERE p.numeroProtocolo = :numeroProtocolo")
     Optional<ProtocoloDefesaCivil> findByNumeroProtocoloWithDetails(@Param("numeroProtocolo") String numeroProtocolo);
+
+    /**
+     * Obtém o próximo valor sequencial atômico diretamente da SEQUENCE do banco de dados (Oracle / H2 MODE=Oracle)
+     * para geração concorrente resiliente do número de protocolo da Defesa Civil.
+     *
+     * @return Próximo identificador sequencial numérico.
+     */
+    @Query(value = "SELECT SEQ_PROTOCOLO_NUMERO.NEXTVAL FROM DUAL", nativeQuery = true)
+    Long obterProximoNumeroSequencial();
 }

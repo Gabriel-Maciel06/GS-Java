@@ -37,14 +37,16 @@ class SchemaSqlCompatibilityTest {
         assertDoesNotThrow(() -> populator.execute(dataSource),
                 "O arquivo schema.sql deve ser 100% compatível com a sintaxe Oracle 23c e H2 MODE=Oracle");
 
-        // Verifica existência das tabelas principais
+        // Verifica existência das tabelas principais e sequence de protocolo
         Integer totalCidadaos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM TB_CIDADAO", Integer.class);
         Integer totalOcorrencias = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM TB_OCORRENCIA", Integer.class);
         Integer totalProtocolos = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM TB_PROTOCOLO_DEFESA_CIVIL", Integer.class);
+        Long proximoSeq = jdbcTemplate.queryForObject("SELECT SEQ_PROTOCOLO_NUMERO.NEXTVAL FROM DUAL", Long.class);
 
         assertThat(totalCidadaos).isNotNull().isZero();
         assertThat(totalOcorrencias).isNotNull().isZero();
         assertThat(totalProtocolos).isNotNull().isZero();
+        assertThat(proximoSeq).isNotNull().isPositive();
     }
 
     @Test
