@@ -347,10 +347,18 @@ public class RealWorldDisasterScenariosE2ETest extends BaseE2ETest {
         ), tokenGestor);
 
         patchJson("/api/ocorrencias/" + ocId2 + "/status", Map.of(
+                "novoStatus", "EM_ANALISE",
+                "justificativa", "Triagem técnica"
+        ), tokenGestor);
+        patchJson("/api/ocorrencias/" + ocId2 + "/status", Map.of(
                 "novoStatus", "RESOLVIDA",
                 "justificativa", "Caçambas removidas e via liberada."
         ), tokenGestor);
 
+        patchJson("/api/ocorrencias/" + ocId3 + "/status", Map.of(
+                "novoStatus", "EM_ANALISE",
+                "justificativa", "Triagem técnica"
+        ), tokenGestor);
         patchJson("/api/ocorrencias/" + ocId3 + "/status", Map.of(
                 "novoStatus", "RESOLVIDA",
                 "justificativa", "Tampa de bueiro recolocada e sinalização removida."

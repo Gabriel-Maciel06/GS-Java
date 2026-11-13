@@ -103,6 +103,11 @@ public class SpringAiBoundaryE2ETest extends BaseE2ETest {
         Long id = ocResp.getBody().get("id").asLong();
 
         patchJson("/api/ocorrencias/" + id + "/status", Map.of(
+                "novoStatus", "EM_ANALISE",
+                "justificativa", "Triagem técnica iniciada"
+        ), tokenGestor);
+
+        patchJson("/api/ocorrencias/" + id + "/status", Map.of(
                 "novoStatus", "RESOLVIDA",
                 "justificativa", "Limpeza executada"
         ), tokenGestor);

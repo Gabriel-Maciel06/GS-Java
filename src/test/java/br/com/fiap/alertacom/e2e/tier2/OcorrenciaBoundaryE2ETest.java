@@ -39,7 +39,12 @@ public class OcorrenciaBoundaryE2ETest extends BaseE2ETest {
 
         Long id = cadastrarOcorrenciaBase(tokenCidadao);
 
-        // Mover para RESOLVIDA
+        // Mover para EM_ANALISE, depois RESOLVIDA
+        patchJson("/api/ocorrencias/" + id + "/status", Map.of(
+                "novoStatus", "EM_ANALISE",
+                "justificativa", "Triagem técnica iniciada"
+        ), tokenGestor);
+
         patchJson("/api/ocorrencias/" + id + "/status", Map.of(
                 "novoStatus", "RESOLVIDA",
                 "justificativa", "Finalizado com sucesso"
@@ -152,7 +157,7 @@ public class OcorrenciaBoundaryE2ETest extends BaseE2ETest {
     @Test
     @DisplayName("T2_OCO_05: Cadastro com Vínculo a Cidadão Inexistente")
     void testCadastroVinculoCidadaoInexistente() {
-        String tokenCidadao = jwtHelper.gerarTokenCidadao(999999L, "fantasma@teste.com", "Fantasma", "Centro");
+        String tokenGestor = jwtHelper.gerarTokenGestor(99L, "gestor.boundary@alertacom.com", "Gestor", "Centro");
 
         ResponseEntity<JsonNode> response = postJson("/api/ocorrencias", Map.of(
                 "titulo", "Alagamento na Rua Central",
@@ -164,7 +169,7 @@ public class OcorrenciaBoundaryE2ETest extends BaseE2ETest {
                 "endereco", "Rua Central, 100",
                 "bairro", "Centro",
                 "cidadaoId", 999999L
-        ), tokenCidadao);
+        ), tokenGestor);
 
         assertThat(response.getStatusCode()).isIn(HttpStatus.NOT_FOUND, HttpStatus.BAD_REQUEST);
     }
