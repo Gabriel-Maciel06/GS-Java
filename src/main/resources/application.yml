@@ -28,3 +28,26 @@ server:
   port: 8080
   error:
     include-message: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, env, beans
+  endpoint:
+    health:
+      show-details: when-authorized
+      roles: GESTOR
+      probes:
+        enabled: true
+    info:
+      enabled: true
+  health:
+    rabbit:
+      enabled: false
+
+info:
+  app:
+    name: "AlertaCom API"
+    description: "Sistema Inteligente de Alerta e Gestão de Incidentes Urbanos (FIAP 2TDSR)"
+    version: "1.0.0"

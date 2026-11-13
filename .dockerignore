@@ -1,0 +1,121 @@
+# ==============================================================================
+# AlertaCom API — .dockerignore
+# Global Solution 2026/2 FIAP — Turma 2TDSR
+# Integrantes:
+#   - Gabriel Maciel Alves de Oliveira (RM 562795)
+#   - Thomas Fontes (RM 562254)
+#   - Vitória Rodrigues Martins (RM 565160)
+#   - Matheus Pereira Molina (RM 563399)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Controle de Versão (VCS) & CI/CD
+# ------------------------------------------------------------------------------
+**/.git
+**/.gitignore
+**/.gitattributes
+.github/
+
+# ------------------------------------------------------------------------------
+# 2. Metadados e Ferramental de Agentes de IA
+# ------------------------------------------------------------------------------
+.agents/
+_AI-Log/
+.taste-skill/
+escritorio-agentes/
+tools/
+Abrir Escritorio Virtual.command
+Iniciar Agentes.command
+
+# ------------------------------------------------------------------------------
+# 3. Vaults Pessoais, Acadêmicos e Corporativos (Isapel & FIAP)
+# ------------------------------------------------------------------------------
+01-Faculdade-FIAP/
+02-Isapel-Comercial/
+03-Isapel-Videos/
+04-Projetos-Apps/
+isapel-crm/
+mm-paper-logo/
+mmpaper/
+mmpaper*
+video_editor_pipeline/
+reports/
+output/
+scripts/
+assets/
+config/
+
+# ------------------------------------------------------------------------------
+# 4. Ambientes Virtuais e Caches de Linguagens (Python/Node)
+# ------------------------------------------------------------------------------
+.venv*/
+venv*/
+env*/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+node_modules/
+
+# ------------------------------------------------------------------------------
+# 5. Artefatos de Compilação Maven, Classes e Pacotes JVM Locais
+# ------------------------------------------------------------------------------
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# ------------------------------------------------------------------------------
+# 6. Variáveis de Ambiente e Segredos Locais
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ------------------------------------------------------------------------------
+# 7. Arquivos Temporários, Logs e Arquivos de Sistema Operacional
+# ------------------------------------------------------------------------------
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# ------------------------------------------------------------------------------
+# 8. Configurações de IDEs e Editores
+# ------------------------------------------------------------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.vscode/
+.settings/
+.project
+.classpath
+nbproject/
+/build/
+
+# ------------------------------------------------------------------------------
+# 9. Scripts Locais e Documentação Interna de Suporte
+# ------------------------------------------------------------------------------
+*.command
+start.sh
+COMO_USAR.md
+ORIGINAL_REQUEST.md
+PROJECT.md
+TEST_INFRA.md
+TEST_READY.md
