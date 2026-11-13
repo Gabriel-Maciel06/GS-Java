@@ -9,6 +9,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -161,5 +162,56 @@ class TokenServiceTest {
     void deveLancarExcecaoQuandoCidadaoNulo() {
         assertThatThrownBy(() -> tokenService.gerarToken(null))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("F1.3: Deve lançar IllegalStateException quando segredo tiver menos de 32 caracteres (256 bits)")
+    void deveLancarExcecaoQuandoSegredoMenorQue32Caracteres() {
+        assertThatThrownBy(() -> new TokenService("chaveCurta12345"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("mínimo 32 caracteres");
+    }
+
+    @Test
+    @DisplayName("F1.3: Deve lançar IllegalStateException em perfil docker quando JWT_SECRET não estiver definido")
+    void deveLancarExcecaoQuandoPerfilDockerSemVariavelJwtSecret() {
+        MockEnvironment env = new MockEnvironment();
+        env.setActiveProfiles("docker");
+
+        assertThatThrownBy(() -> new TokenService("", env))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("JWT_SECRET é obrigatória nos perfis 'docker'/'prod'");
+    }
+
+    @Test
+    @DisplayName("F1.3: Deve lançar IllegalStateException em perfil prod quando usar segredo padrão de desenvolvimento")
+    void deveLancarExcecaoQuandoPerfilProdUsarSegredoPadraoDev() {
+        MockEnvironment env = new MockEnvironment();
+        env.setActiveProfiles("prod");
+
+        assertThatThrownBy(() -> new TokenService(TokenService.SEGREDO_PADRAO_DEV, env))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("segredo padrão de desenvolvimento não pode ser utilizado");
+    }
+
+    @Test
+    @DisplayName("F1.3: Deve permitir inicialização com chave forte em perfil docker")
+    void devePermitirSegredoValidoEmPerfilDocker() {
+        MockEnvironment env = new MockEnvironment();
+        env.setActiveProfiles("docker");
+        String chaveForte = "ChaveSuperSecretaDeProducaoParaDocker2026ComMaisDe32Caracteres!";
+
+        TokenService service = new TokenService(chaveForte, env);
+        assertThat(service).isNotNull();
+    }
+
+    @Test
+    @DisplayName("F1.3: Deve tolerar segredo padrão em perfil dev ou test com aviso em log")
+    void devePermitirSegredoPadraoEmPerfilDevOuTest() {
+        MockEnvironment env = new MockEnvironment();
+        env.setActiveProfiles("test");
+
+        TokenService service = new TokenService(null, env);
+        assertThat(service).isNotNull();
     }
 }

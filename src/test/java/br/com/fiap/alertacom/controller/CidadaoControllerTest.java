@@ -24,10 +24,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import org.mockito.ArgumentCaptor;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -193,5 +195,81 @@ class CidadaoControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(cidadaoService, times(1)).desativar(5L);
+    }
+
+    @Test
+    @DisplayName("F1.1: POST /api/cidadaos - Munícipe comum enviando role ROLE_GESTOR deve ter role forçada para ROLE_CIDADAO")
+    @WithMockUser(username = "municipe@email.com", roles = "CIDADAO")
+    void deveForcarRoleCidadaoQuandoNaoForGestor() throws Exception {
+        CidadaoRequest request = new CidadaoRequest(
+                "Municipe Tentando Gestor",
+                "municipe.tentativa@email.com",
+                "(11) 98765-4321",
+                "Mooca",
+                "senha123",
+                "ROLE_GESTOR"
+        );
+
+        CidadaoResponse response = new CidadaoResponse(
+                10L,
+                "Municipe Tentando Gestor",
+                "municipe.tentativa@email.com",
+                "(11) 98765-4321",
+                "Mooca",
+                "ROLE_CIDADAO",
+                LocalDateTime.now(),
+                true
+        );
+
+        ArgumentCaptor<CidadaoRequest> captor = ArgumentCaptor.forClass(CidadaoRequest.class);
+        when(cidadaoService.cadastrar(captor.capture())).thenReturn(response);
+
+        mockMvc.perform(post("/api/cidadaos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.role").value("ROLE_CIDADAO"));
+
+        assertThat(captor.getValue().role()).isEqualTo("ROLE_CIDADAO");
+    }
+
+    @Test
+    @DisplayName("F1.4: GET /api/cidadaos/{id} - Munícipe tentando acessar ID de outro cidadão deve retornar 403 Forbidden")
+    @WithMockUser(username = "municipe@email.com", roles = "CIDADAO")
+    void deveRetornar403QuandoMunicipeTentaAcessarOutroCidadao() throws Exception {
+        when(cidadaoService.buscarIdPorEmail("municipe@email.com")).thenReturn(1L);
+
+        mockMvc.perform(get("/api/cidadaos/{id}", 2L))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.title").value("Acesso Proibido"));
+    }
+
+    @Test
+    @DisplayName("F1.4: PUT /api/cidadaos/{id} - Munícipe tentando alterar dados de outro cidadão deve retornar 403 Forbidden")
+    @WithMockUser(username = "municipe@email.com", roles = "CIDADAO")
+    void deveRetornar403QuandoMunicipeTentaAlterarOutroCidadao() throws Exception {
+        when(cidadaoService.buscarIdPorEmail("municipe@email.com")).thenReturn(1L);
+        AtualizarCidadaoRequest request = new AtualizarCidadaoRequest("Novo Nome", "(11) 93333-3333", "Tatuapé");
+
+        mockMvc.perform(put("/api/cidadaos/{id}", 2L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status").value(403));
+    }
+
+    @Test
+    @DisplayName("F1.4: GET /api/cidadaos/{id} - Munícipe acessando próprio cadastro deve retornar 200 OK")
+    @WithMockUser(username = "municipe@email.com", roles = "CIDADAO")
+    void devePermitirMunicipeConsultarProprioCadastro() throws Exception {
+        when(cidadaoService.buscarIdPorEmail("municipe@email.com")).thenReturn(1L);
+        CidadaoResponse response = new CidadaoResponse(1L, "Meu Nome", "municipe@email.com", "(11) 91111-2222", "Mooca", "ROLE_CIDADAO", LocalDateTime.now(), true);
+        when(cidadaoService.buscarPorId(1L)).thenReturn(response);
+
+        mockMvc.perform(get("/api/cidadaos/{id}", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.email").value("municipe@email.com"));
     }
 }

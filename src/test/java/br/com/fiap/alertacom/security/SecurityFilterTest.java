@@ -122,26 +122,24 @@ class SecurityFilterTest {
     }
 
     @Test
-    @DisplayName("Deve utilizar fallback e autenticar a partir das claims quando usuário não estiver salvo no banco")
-    void deveCriarUsuarioFallbackQuandoNaoPersistidoNoBanco() throws ServletException, IOException {
+    @DisplayName("Não deve autenticar quando o usuário não estiver persistido no banco de dados (eliminação do backdoor)")
+    void naoDeveAutenticarQuandoUsuarioNaoPersistidoNoBanco() throws ServletException, IOException {
         String token = "jwt.sem.registro.banco";
         String email = "token.forjado@alertacom.com";
 
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
         when(tokenService.validarToken(token)).thenReturn(email);
         when(userDetailsService.loadUserByUsername(email)).thenThrow(new UsernameNotFoundException("Não encontrado"));
-        when(tokenService.extrairRole(token)).thenReturn("ROLE_GESTOR");
-        when(tokenService.extrairId(token)).thenReturn(99L);
-        when(tokenService.extrairNome(token)).thenReturn("Gestor Forjado");
-        when(tokenService.extrairBairro(token)).thenReturn("Sé");
 
         securityFilter.doFilterInternal(request, response, filterChain);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        assertThat(auth).isNotNull();
-        assertThat(auth.getName()).isEqualTo(email);
-        assertThat(auth.getAuthorities()).extracting("authority").containsExactly("ROLE_GESTOR");
+        assertThat(auth).isNull();
         verify(filterChain).doFilter(request, response);
+        verify(tokenService, never()).extrairRole(anyString());
+        verify(tokenService, never()).extrairId(anyString());
+        verify(tokenService, never()).extrairNome(anyString());
+        verify(tokenService, never()).extrairBairro(anyString());
     }
 
     @Test

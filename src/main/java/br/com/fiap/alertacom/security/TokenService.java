@@ -7,13 +7,18 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Serviço responsável pela emissão, validação criptográfica HMAC256
@@ -25,15 +30,71 @@ public class TokenService {
     private static final Logger log = LoggerFactory.getLogger(TokenService.class);
     public static final String ISSUER = "alertacom-api";
     public static final long EXPIRACAO_PADRAO_MILLIS = 86400000L; // 24 horas
+    public static final int TAMANHO_MINIMO_SEGREDO = 32; // 256 bits para HMAC256
+    public static final String SEGREDO_PADRAO_DEV = "AlertaComSuperChaveSecretaGlobalSolutionFIAP2026";
 
-    @Value("${jwt.secret:${api.security.token.secret:AlertaComSuperChaveSecretaGlobalSolutionFIAP2026}}")
-    private String secret = "AlertaComSuperChaveSecretaGlobalSolutionFIAP2026";
+    @Value("${jwt.secret:${api.security.token.secret:}}")
+    private String secret;
+
+    @Autowired(required = false)
+    private Environment environment;
 
     public TokenService() {
     }
 
     public TokenService(String secret) {
         this.secret = secret;
+        validarComprimentoSegredo(this.secret);
+    }
+
+    public TokenService(String secret, Environment environment) {
+        this.secret = secret;
+        this.environment = environment;
+        validarConfiguracaoSegredo();
+    }
+
+    @PostConstruct
+    public void validarConfiguracaoSegredo() {
+        boolean isAmbienteProducaoOuDocker = verificarSeAmbienteProducaoOuDocker();
+
+        if (this.secret == null || this.secret.isBlank()) {
+            if (isAmbienteProducaoOuDocker) {
+                throw new IllegalStateException(
+                        "Falha crítica de segurança: A variável de ambiente JWT_SECRET é obrigatória nos perfis 'docker'/'prod' e não foi definida.");
+            }
+            log.warn("Variável JWT_SECRET não informada. Utilizando segredo padrão para ambiente de desenvolvimento/teste.");
+            this.secret = SEGREDO_PADRAO_DEV;
+        }
+
+        validarComprimentoSegredo(this.secret);
+
+        if (isAmbienteProducaoOuDocker && SEGREDO_PADRAO_DEV.equals(this.secret.trim())) {
+            throw new IllegalStateException(
+                    "Falha crítica de segurança: O segredo padrão de desenvolvimento não pode ser utilizado nos perfis 'docker'/'prod'. Configure uma chave única via JWT_SECRET.");
+        }
+    }
+
+    private void validarComprimentoSegredo(String chave) {
+        if (chave == null || chave.trim().length() < TAMANHO_MINIMO_SEGREDO) {
+            int compAtual = (chave == null) ? 0 : chave.trim().length();
+            throw new IllegalStateException(
+                    String.format("Falha crítica de segurança: O segredo JWT possui entropia insuficiente (mínimo %d caracteres / 256 bits). Comprimento atual: %d",
+                            TAMANHO_MINIMO_SEGREDO, compAtual));
+        }
+    }
+
+    private boolean verificarSeAmbienteProducaoOuDocker() {
+        if (this.environment == null) {
+            return false;
+        }
+        List<String> perfisRestritos = List.of("docker", "prod", "production");
+        List<String> perfisAtivos = Arrays.asList(this.environment.getActiveProfiles());
+        for (String perfilRestrito : perfisRestritos) {
+            if (perfisAtivos.contains(perfilRestrito)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -43,6 +104,7 @@ public class TokenService {
         if (cidadao == null) {
             throw new IllegalArgumentException("Cidadão não pode ser nulo para geração de token");
         }
+        validarComprimentoSegredo(this.secret);
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             return JWT.create()

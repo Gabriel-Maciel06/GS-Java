@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -256,5 +257,265 @@ class SecurityRbacIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(idCidadao.intValue())))
                 .andExpect(jsonPath("$.email", is("municipe.rbac@alertacom.com")));
+    }
+
+    // =========================================================================
+    // 5. Blindagem contra Vulnerabilidades M1 (Escalada, IDOR e Usuário Inexistente / Inativo)
+    // =========================================================================
+
+    @Test
+    @DisplayName("F1.1: Cadastro público em POST /api/cidadaos deve forçar ROLE_CIDADAO mesmo se payload enviar ROLE_GESTOR")
+    void deveForcarRoleCidadaoQuandoCadastroPublicoEnviarRoleGestor() throws Exception {
+        String jsonEscalada = """
+            {
+                "nome": "Atacante Escalada",
+                "email": "atacante.escalada@alertacom.com",
+                "telefone": "(11) 98888-0000",
+                "bairro": "Centro",
+                "senha": "SenhaForte@123",
+                "role": "ROLE_GESTOR"
+            }
+            """;
+
+        mockMvc.perform(post("/api/cidadaos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonEscalada))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.role", is("ROLE_CIDADAO")));
+
+        Cidadao salvo = cidadaoRepository.findByEmail("atacante.escalada@alertacom.com").orElseThrow();
+        assertThat(salvo.getRole()).isEqualTo("ROLE_CIDADAO");
+    }
+
+    @Test
+    @DisplayName("F1.2: Requisição com token de usuário inexistente no banco deve retornar 401 Unauthorized")
+    void deveRetornar401QuandoTokenPossuirUsuarioInexistenteNoBanco() throws Exception {
+        Algorithm algorithm = Algorithm.HMAC256(secret);
+        String tokenFantasma = JWT.create()
+                .withIssuer("alertacom-api")
+                .withSubject("fantasma.nao.existe@alertacom.com")
+                .withClaim("role", "ROLE_GESTOR")
+                .withExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+                .sign(algorithm);
+
+        mockMvc.perform(get("/api/ocorrencias/minhas")
+                        .header("Authorization", "Bearer " + tokenFantasma))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)))
+                .andExpect(jsonPath("$.title", is("Não Autorizado")));
+    }
+
+    @Test
+    @DisplayName("F1.2: Requisição com token de usuário inativo (ativo = false) deve retornar 401 Unauthorized")
+    void deveRetornar401QuandoTokenPossuirUsuarioInativo() throws Exception {
+        Cidadao inativo = cidadaoRepository.save(Cidadao.builder()
+                .nome("Munícipe Desativado")
+                .email("desativado.rbac@alertacom.com")
+                .telefone("(11) 96666-5555")
+                .bairro("Brás")
+                .senha(passwordEncoder.encode("Senha123@"))
+                .role("ROLE_CIDADAO")
+                .ativo(false)
+                .build());
+
+        String tokenInativo = tokenService.gerarToken(inativo);
+
+        mockMvc.perform(get("/api/ocorrencias/minhas")
+                        .header("Authorization", "Bearer " + tokenInativo))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)))
+                .andExpect(jsonPath("$.title", is("Não Autorizado")));
+    }
+
+    @Test
+    @DisplayName("F1.4: IDOR Cidadão - Munícipe tentando consultar perfil de outro cidadão recebe 403 Forbidden")
+    void deveRetornar403QuandoCidadaoTentaConsultarOutroCidadao() throws Exception {
+        Cidadao vitima = cidadaoRepository.save(Cidadao.builder()
+                .nome("Munícipe Vítima")
+                .email("vitima.idor@alertacom.com")
+                .telefone("(11) 97777-3333")
+                .bairro("Mooca")
+                .senha(passwordEncoder.encode("Senha123@"))
+                .role("ROLE_CIDADAO")
+                .ativo(true)
+                .build());
+
+        mockMvc.perform(get("/api/cidadaos/" + vitima.getId())
+                        .header("Authorization", "Bearer " + tokenCidadao))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status", is(403)))
+                .andExpect(jsonPath("$.title", is("Acesso Proibido")));
+    }
+
+    @Test
+    @DisplayName("F1.4: IDOR Cidadão - Munícipe tentando atualizar dados de outro cidadão recebe 403 Forbidden")
+    void deveRetornar403QuandoCidadaoTentaAtualizarOutroCidadao() throws Exception {
+        Cidadao vitima = cidadaoRepository.save(Cidadao.builder()
+                .nome("Munícipe Vítima 2")
+                .email("vitima2.idor@alertacom.com")
+                .telefone("(11) 97777-4444")
+                .bairro("Mooca")
+                .senha(passwordEncoder.encode("Senha123@"))
+                .role("ROLE_CIDADAO")
+                .ativo(true)
+                .build());
+
+        String payload = """
+            {
+                "nome": "Nome Hackeado",
+                "telefone": "(11) 90000-0000",
+                "bairro": "Sé"
+            }
+            """;
+
+        mockMvc.perform(put("/api/cidadaos/" + vitima.getId())
+                        .header("Authorization", "Bearer " + tokenCidadao)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status", is(403)));
+    }
+
+    @Test
+    @DisplayName("F1.4: Gestor pode consultar qualquer cidadão (200 OK)")
+    void devePermitirGestorConsultarQualquerCidadao() throws Exception {
+        mockMvc.perform(get("/api/cidadaos/" + idCidadao)
+                        .header("Authorization", "Bearer " + tokenGestor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(idCidadao.intValue())));
+    }
+
+    @Test
+    @DisplayName("F1.5: IDOR Ocorrência - POST /api/ocorrencias vincula ao cidadão autenticado e ignora cidadaoId do payload")
+    void deveVincularOcorrenciaAoCidadaoAutenticadoIgnorandoPayload() throws Exception {
+        Long idFicticio = 99999L;
+        String payload = String.format("""
+            {
+                "titulo": "Alagamento na Rua dos Trilhos",
+                "descricao": "Água da chuva invadindo comércios e garagens",
+                "categoria": "ALAGAMENTO",
+                "severidade": "MEDIA",
+                "latitude": -23.55052,
+                "longitude": -46.63330,
+                "endereco": "Rua dos Trilhos, 1200",
+                "bairro": "Vila Prudente",
+                "cidadaoId": %d
+            }
+            """, idFicticio);
+
+        mockMvc.perform(post("/api/ocorrencias")
+                        .header("Authorization", "Bearer " + tokenCidadao)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.cidadao.id", is(idCidadao.intValue())))
+                .andExpect(jsonPath("$.cidadao.email", is("municipe.rbac@alertacom.com")));
+    }
+
+    // =========================================================================
+    // 6. Matriz de Segurança do Spring Boot Actuator
+    // =========================================================================
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator/health é público (200 OK) e não expõe detalhes para anônimos")
+    void devePermitirAcessoAnonimoAoActuatorHealthSemDetalhes() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("UP")))
+                .andExpect(jsonPath("$.components").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator/info é público (200 OK)")
+    void devePermitirAcessoAnonimoAoActuatorInfo() throws Exception {
+        mockMvc.perform(get("/actuator/info"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator/metrics sem token retorna 401 Unauthorized com RFC 7807")
+    void deveRetornar401QuandoAnonimoTentaAcessarMetricas() throws Exception {
+        mockMvc.perform(get("/actuator/metrics"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().string("Content-Type", containsString("application/problem+json")))
+                .andExpect(jsonPath("$.status", is(401)))
+                .andExpect(jsonPath("$.title", is("Não Autorizado")));
+    }
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator/metrics com ROLE_CIDADAO retorna 403 Forbidden")
+    void deveRetornar403QuandoCidadaoTentaAcessarMetricas() throws Exception {
+        mockMvc.perform(get("/actuator/metrics")
+                        .header("Authorization", "Bearer " + tokenCidadao))
+                .andExpect(status().isForbidden())
+                .andExpect(header().string("Content-Type", containsString("application/problem+json")))
+                .andExpect(jsonPath("$.status", is(403)))
+                .andExpect(jsonPath("$.title", is("Acesso Proibido")));
+    }
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator/metrics com ROLE_GESTOR é autorizado (200 OK)")
+    void devePermitirGestorAcessarMetricas() throws Exception {
+        mockMvc.perform(get("/actuator/metrics")
+                        .header("Authorization", "Bearer " + tokenGestor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.names").isArray());
+    }
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator (raiz) sem token retorna 401 Unauthorized")
+    void deveRetornar401QuandoAnonimoTentaAcessarRaizActuator() throws Exception {
+        mockMvc.perform(get("/actuator"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)));
+    }
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator com ROLE_CIDADAO retorna 403 Forbidden")
+    void deveRetornar403QuandoCidadaoTentaAcessarRaizActuator() throws Exception {
+        mockMvc.perform(get("/actuator")
+                        .header("Authorization", "Bearer " + tokenCidadao))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.status", is(403)));
+    }
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator com ROLE_GESTOR é autorizado (200 OK)")
+    void devePermitirGestorAcessarRaizActuator() throws Exception {
+        mockMvc.perform(get("/actuator")
+                        .header("Authorization", "Bearer " + tokenGestor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._links").exists());
+    }
+
+    @Test
+    @DisplayName("ACTUATOR: GET /actuator/health com ROLE_GESTOR expõe detalhes dos componentes")
+    void deveExibirDetalhesHealthQuandoGestorAutenticado() throws Exception {
+        mockMvc.perform(get("/actuator/health")
+                        .header("Authorization", "Bearer " + tokenGestor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("UP")))
+                .andExpect(jsonPath("$.components").exists())
+                .andExpect(jsonPath("$.components.db.status", is("UP")));
+    }
+
+    // =========================================================================
+    // 7. H2 Console e Cabeçalhos de Segurança fora do perfil Dev (Perfil Test)
+    // =========================================================================
+
+    @Test
+    @DisplayName("H2 CONSOLE: Fora do perfil dev, acesso ao H2 Console é bloqueado (401)")
+    void deveBloquearH2ConsoleForaDoPerfilDevParaAnonimo() throws Exception {
+        mockMvc.perform(get("/h2-console"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status", is(401)));
+    }
+
+    @Test
+    @DisplayName("HEADERS: Fora do perfil dev (ex: test/prod), cabeçalho X-Frame-Options deve ser DENY")
+    void deveConterHeaderFrameOptionsDenyForaDoPerfilDev() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Frame-Options", is("DENY")));
     }
 }

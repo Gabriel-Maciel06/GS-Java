@@ -78,4 +78,13 @@ public class CidadaoService {
         cidadao.setAtivo(Boolean.FALSE);
         cidadaoRepository.save(cidadao);
     }
+
+    public Long buscarIdPorEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return cidadaoRepository.findByEmail(email)
+                .map(Cidadao::getId)
+                .orElse(null);
+    }
 }

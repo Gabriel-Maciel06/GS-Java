@@ -1,10 +1,14 @@
 package br.com.fiap.alertacom.e2e.base;
 
+import br.com.fiap.alertacom.domain.model.Cidadao;
+import br.com.fiap.alertacom.domain.repository.CidadaoRepository;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -14,6 +18,7 @@ import java.util.Collections;
 /**
  * Utilitário de forja e emissão de tokens JWT para testes E2E.
  * Suporta tokens válidos, expirados, adulterados, com chave falsa e anônimos.
+ * Persiste usuários reais no banco relacional para validação estrita no SecurityFilter.
  */
 @Component
 public class JwtTestHelper {
@@ -23,6 +28,12 @@ public class JwtTestHelper {
 
     private static final String ISSUER = "alertacom-api";
 
+    @Autowired(required = false)
+    private CidadaoRepository cidadaoRepository;
+
+    @Autowired(required = false)
+    private PasswordEncoder passwordEncoder;
+
     public JwtTestHelper() {
     }
 
@@ -30,24 +41,45 @@ public class JwtTestHelper {
         this.secret = secret;
     }
 
-    /**
-     * Gera token JWT válido com perfil ROLE_CIDADAO.
-     */
-    public String gerarTokenCidadao(Long id, String email, String nome, String bairro) {
-        return emitirToken(id, email, nome, "ROLE_CIDADAO", bairro, 24, secret);
+    public void setCidadaoRepository(CidadaoRepository cidadaoRepository) {
+        this.cidadaoRepository = cidadaoRepository;
+    }
+
+    public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
-     * Gera token JWT válido com perfil ROLE_GESTOR.
+     * Gera token JWT válido com perfil ROLE_CIDADAO, assegurando persistência no banco.
+     */
+    public String gerarTokenCidadao(Long id, String email, String nome, String bairro) {
+        Cidadao cidadao = assegurarUsuarioPersistido(email, nome, "ROLE_CIDADAO", bairro);
+        Long idFinal = (cidadao != null && cidadao.getId() != null) ? cidadao.getId() : id;
+        return emitirToken(idFinal, email, nome, "ROLE_CIDADAO", bairro, 24, secret);
+    }
+
+    /**
+     * Gera token JWT válido com perfil ROLE_GESTOR, assegurando persistência no banco.
      */
     public String gerarTokenGestor(Long id, String email, String nome, String bairro) {
-        return emitirToken(id, email, nome, "ROLE_GESTOR", bairro, 24, secret);
+        Cidadao gestor = assegurarUsuarioPersistido(email, nome, "ROLE_GESTOR", bairro);
+        Long idFinal = (gestor != null && gestor.getId() != null) ? gestor.getId() : id;
+        return emitirToken(idFinal, email, nome, "ROLE_GESTOR", bairro, 24, secret);
+    }
+
+    /**
+     * Gera token JWT válido para usuário deliberadamente NÃO persistido no banco
+     * para testes de segurança (rejeição de usuário inexistente com 401).
+     */
+    public String gerarTokenUsuarioInexistente(String email, String role) {
+        return emitirToken(999999L, email, "Fantasma Teste", role, "Centro", 24, secret);
     }
 
     /**
      * Gera token JWT expirado (emitido com expiração no passado).
      */
     public String gerarTokenExpirado(Long id, String email, String role) {
+        assegurarUsuarioPersistido(email, "Usuario Expirado", role, "Centro");
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
                 .withIssuer(ISSUER)
@@ -80,6 +112,7 @@ public class JwtTestHelper {
      * Gera token JWT válido sem a claim 'role'.
      */
     public String gerarTokenSemRole(Long id, String email) {
+        assegurarUsuarioPersistido(email, "Usuario Sem Role", "ROLE_CIDADAO", "Centro");
         Algorithm algorithm = Algorithm.HMAC256(secret);
         return JWT.create()
                 .withIssuer(ISSUER)
@@ -125,6 +158,38 @@ public class JwtTestHelper {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         return headers;
+    }
+
+    private Cidadao assegurarUsuarioPersistido(String email, String nome, String role, String bairro) {
+        if (cidadaoRepository == null || email == null || email.isBlank()) {
+            return null;
+        }
+        return cidadaoRepository.findByEmail(email).map(existente -> {
+            boolean modificado = false;
+            if (role != null && !role.equals(existente.getRole())) {
+                existente.setRole(role);
+                modificado = true;
+            }
+            if (!Boolean.TRUE.equals(existente.getAtivo())) {
+                existente.setAtivo(true);
+                modificado = true;
+            }
+            return modificado ? cidadaoRepository.save(existente) : existente;
+        }).orElseGet(() -> {
+            String hashSenha = passwordEncoder != null
+                    ? passwordEncoder.encode("SenhaForte@123")
+                    : "$2a$10$7EqJtq98hPqEX7fNZaFWoOhiMv4L8.wG8fQ2XUfB9U5Z6QvE0P.iW";
+            Cidadao novo = Cidadao.builder()
+                    .nome(nome != null ? nome : "Usuario Teste")
+                    .email(email)
+                    .telefone("(11) 98765-4321")
+                    .bairro(bairro != null ? bairro : "Vila Prudente")
+                    .senha(hashSenha)
+                    .role(role != null ? role : "ROLE_CIDADAO")
+                    .ativo(true)
+                    .build();
+            return cidadaoRepository.save(novo);
+        });
     }
 
     private String emitirToken(Long id, String email, String nome, String role, String bairro, int horasValidade, String segredo) {
