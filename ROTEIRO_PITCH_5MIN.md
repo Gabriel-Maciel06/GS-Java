@@ -193,7 +193,7 @@ Utilize a credencial do gestor municipal inicial pré-provisionado pelo `GestorS
 *(Nota: Se customizado via variável de ambiente `ALERTACOM_GESTOR_DEFAULT_SENHA=admin123`, utilize `admin123`).*
 
 ### 3. Abertura de Ocorrência Crítica (`POST /api/ocorrencias` — Demonstração Anti-IDOR & AMQP)
-*Dica de Demonstração:* Mostre que o campo `cidadaoId` pode ser omitido ou conter qualquer valor arbitrário (`999999`); a API ignora o valor e vincula o registro diretamente ao munícipe autenticado pelo token JWT, mitigando vulnerabilidades IDOR.
+*Dica de Demonstração:* O campo `cidadaoId` é exigido pelo contrato Jakarta Bean Validation (`@NotNull`), mas enviar um ID arbitrário como `999999` demonstra ao vivo para a banca examinadora que o backend neutraliza ativamente o IDOR: o `OcorrenciaService` ignora o valor recebido e vincula a ocorrência obrigatoriamente ao munícipe autenticado no token JWT.
 ```json
 {
   "titulo": "Transbordamento crítico do Córrego da Mooca na Av. Anhaia Mello",
@@ -203,7 +203,8 @@ Utilize a credencial do gestor municipal inicial pré-provisionado pelo `GestorS
   "latitude": -23.584100,
   "longitude": -46.587200,
   "endereco": "Av. Professor Luiz Ignácio Anhaia Mello, 1200",
-  "bairro": "Vila Prudente"
+  "bairro": "Vila Prudente",
+  "cidadaoId": 999999
 }
 ```
 
@@ -277,7 +278,8 @@ curl -i -X POST http://localhost:8080/api/ocorrencias \
     "latitude": -23.584100,
     "longitude": -46.587200,
     "endereco": "Av. Professor Luiz Ignácio Anhaia Mello, 1200",
-    "bairro": "Vila Prudente"
+    "bairro": "Vila Prudente",
+    "cidadaoId": 999999
   }'
 
 # 5. Emissão de Protocolo Oficial da Defesa Civil (ROLE_GESTOR)

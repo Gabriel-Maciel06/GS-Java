@@ -484,6 +484,8 @@ TOKEN_GESTOR=$(curl -s -X POST http://localhost:8080/api/auth/login \
 
 A API possui **proteção ativa contra IDOR**: o incidente é vinculado diretamente ao munícipe do token Bearer JWT (`principal`), ignorando qualquer identificador `cidadaoId` enviado no JSON.
 
+> **Nota:** O campo `cidadaoId` é exigido pelo DTO na validação Jakarta Bean Validation (`@NotNull`), mas o `OcorrenciaService` neutraliza qualquer valor recebido (como `999999`) e vincula a ocorrência obrigatoriamente ao cidadão autenticado no token JWT (proteção ativa contra IDOR).
+
 ```bash
 curl -X POST http://localhost:8080/api/ocorrencias \
   -H "Content-Type: application/json" \
@@ -496,7 +498,8 @@ curl -X POST http://localhost:8080/api/ocorrencias \
     "latitude": -23.584100,
     "longitude": -46.587200,
     "endereco": "Av. Professor Luiz Ignácio Anhaia Mello, 1200",
-    "bairro": "Vila Prudente"
+    "bairro": "Vila Prudente",
+    "cidadaoId": 999999
   }'
 ```
 
