@@ -55,6 +55,7 @@ Thumbs.db
 /03-Isapel-Videos/
 /04-Projetos-Apps/
 /_AI-Log/
+/assets/
 /config/
 /escritorio-agentes/
 /isapel-crm/
@@ -64,6 +65,7 @@ Thumbs.db
 /output/
 /reports/
 /scripts/
+/tools/
 /video_editor_pipeline/
 /*.command
 /start.sh
