@@ -8,7 +8,7 @@
 > - **Vitória Rodrigues Martins** — RM 565160  
 > - **Matheus Pereira Molina** — RM 563399  
 > **Duração Alvo:** **4 min 50 seg** (Teto máximo estrito da FIAP: **5 min 00 seg**)  
-> **Link do Vídeo no YouTube:** `[INSERIR_LINK_YOUTUBE_NAO_LISTADO_OU_PUBLICO_AQUI]`
+> **Link do Vídeo no YouTube:** [https://youtu.be/xUBQAG9ehek](https://youtu.be/xUBQAG9ehek)
 
 ---
 
