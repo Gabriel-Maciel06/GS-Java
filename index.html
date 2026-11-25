@@ -1,0 +1,2708 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlertaCom — Apresentação Técnica (FIAP GS 2026/2 · Java Advanced)</title>
+<style>
+  :root {
+    --bg-outer: #050811;
+    --bg-slide: #0b1120;
+    --bg-card: rgba(17, 25, 45, 0.92);
+    --bg-card-alt: rgba(24, 34, 58, 0.85);
+    --bg-code: #060a14;
+    --border-subtle: rgba(148, 163, 184, 0.18);
+    --border-strong: rgba(148, 163, 184, 0.34);
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --emerald: #10b981;
+    --emerald-soft: rgba(16, 185, 129, 0.14);
+    --sky: #38bdf8;
+    --sky-soft: rgba(56, 189, 248, 0.14);
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.14);
+    --rose: #f43f5e;
+    --rose-soft: rgba(244, 63, 94, 0.14);
+    --violet: #a78bfa;
+    --violet-soft: rgba(167, 139, 250, 0.14);
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-outer);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Progress Bar */
+  #progress-track {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 50;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 5%;
+    background: linear-gradient(90deg, var(--sky), var(--emerald));
+    transition: width 0.25s ease;
+  }
+
+  /* Viewport Stage */
+  #stage-wrapper {
+    width: 100vw;
+    height: calc(100vh - 46px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px 4px;
+    position: relative;
+  }
+
+  #deck-stage {
+    width: 1280px;
+    height: 720px;
+    position: relative;
+    transform-origin: center center;
+    flex-shrink: 0;
+  }
+
+  /* Slide Base */
+  .slide {
+    width: 1280px;
+    height: 720px;
+    background:
+      radial-gradient(circle at 88% 12%, rgba(56, 189, 248, 0.08), transparent 42%),
+      radial-gradient(circle at 12% 90%, rgba(16, 185, 129, 0.07), transparent 44%),
+      var(--bg-slide);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 26px 34px 22px;
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.65);
+  }
+  .slide.active { display: flex; }
+
+  /* Slide Header */
+  .slide-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 5px; }
+  .eyebrow-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  .pill-sky { background: var(--sky-soft); color: var(--sky); border-color: rgba(56,189,248,0.3); }
+  .pill-emerald { background: var(--emerald-soft); color: var(--emerald); border-color: rgba(16,185,129,0.3); }
+  .pill-amber { background: var(--amber-soft); color: var(--amber); border-color: rgba(245,158,11,0.3); }
+  .pill-rose { background: var(--rose-soft); color: var(--rose); border-color: rgba(244,63,94,0.3); }
+  .pill-violet { background: var(--violet-soft); color: var(--violet); border-color: rgba(167,139,250,0.3); }
+  .pill-slate { background: rgba(148,163,184,0.12); color: var(--text-secondary); border-color: var(--border-subtle); }
+
+  h1.slide-title {
+    font-size: 23px;
+    font-weight: 800;
+    line-height: 1.18;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+  .slide-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .presenter-chip {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: rgba(30, 41, 59, 0.9);
+    border: 1px solid var(--border-strong);
+    padding: 4px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+  .time-chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--sky);
+    font-weight: 600;
+  }
+
+  /* Slide Body & Footer */
+  .slide-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0 8px;
+    min-height: 0;
+  }
+
+  .slide-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .slide-footer strong { color: var(--text-secondary); }
+
+  /* Grid Helpers */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex: 1; min-height: 0; }
+  .grid-2-wide-left { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 14px; flex: 1; min-height: 0; }
+  .grid-2-wide-right { display: grid; grid-template-columns: 0.88fr 1.12fr; gap: 14px; flex: 1; min-height: 0; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .col-stack { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .card-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .card-sky { border-left: 3px solid var(--sky); }
+  .card-emerald { border-left: 3px solid var(--emerald); }
+  .card-amber { border-left: 3px solid var(--amber); }
+  .card-rose { border-left: 3px solid var(--rose); }
+  .card-violet { border-left: 3px solid var(--violet); }
+
+  .why-box {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.09), rgba(56, 189, 248, 0.06));
+    border: 1px solid rgba(16, 185, 129, 0.28);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .why-box .why-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--emerald);
+    margin-bottom: 4px;
+  }
+
+  /* Lists & Text */
+  ul.tech-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  ul.tech-list li {
+    font-size: 12.3px;
+    line-height: 1.38;
+    color: var(--text-secondary);
+    padding-left: 14px;
+    position: relative;
+  }
+  ul.tech-list li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--sky);
+    font-weight: 700;
+  }
+  ul.tech-list li strong { color: var(--text-primary); }
+  code.ic {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: rgba(56, 189, 248, 0.11);
+    color: #bae6fd;
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.18);
+  }
+
+  /* Code Blocks */
+  .code-panel {
+    background: var(--bg-code);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .code-header {
+    background: rgba(30, 41, 59, 0.72);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    padding: 5px 11px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .code-header span.tag {
+    color: var(--sky);
+    font-weight: 700;
+  }
+  pre.code-body {
+    padding: 9px 12px;
+    font-family: var(--font-mono);
+    font-size: 10.6px;
+    line-height: 1.38;
+    color: #e2e8f0;
+    overflow: hidden;
+    white-space: pre;
+  }
+  pre.code-sm { font-size: 10px; line-height: 1.33; padding: 8px 10px; }
+  .kw { color: #c084fc; font-weight: 600; }
+  .tp { color: #38bdf8; }
+  .ann { color: #fbbf24; }
+  .str { color: #6ee7b7; }
+  .cm { color: #64748b; font-style: italic; }
+  .num { color: #fda4af; }
+  .fn { color: #93c5fd; }
+
+  /* Tables */
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.4px;
+  }
+  table.data-table th {
+    text-align: left;
+    padding: 6px 8px;
+    background: rgba(30, 41, 59, 0.85);
+    color: var(--sky);
+    font-weight: 700;
+    font-size: 10.8px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--border-strong);
+  }
+  table.data-table td {
+    padding: 5.5px 8px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    color: var(--text-secondary);
+    vertical-align: top;
+    line-height: 1.32;
+  }
+  table.data-table tr:last-child td { border-bottom: none; }
+  table.data-table td strong { color: var(--text-primary); }
+
+  /* Metric Tiles */
+  .kpi-box {
+    background: var(--bg-card-alt);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .kpi-val {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .kpi-lbl {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    font-weight: 600;
+  }
+
+  /* SVG Box */
+  .svg-wrap {
+    background: rgba(6, 10, 20, 0.72);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+  }
+  .svg-wrap svg {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    display: block;
+  }
+
+  /* Bottom Control Dock */
+  #control-dock {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 46px;
+    background: rgba(7, 11, 20, 0.96);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    z-index: 60;
+    gap: 12px;
+  }
+  .dock-group { display: flex; align-items: center; gap: 8px; }
+  .dock-btn {
+    background: rgba(30, 41, 59, 0.9);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .dock-btn:hover { background: rgba(51, 65, 85, 0.95); border-color: var(--sky); }
+  .dock-btn.active { background: var(--sky-soft); color: var(--sky); border-color: var(--sky); }
+  #slide-select {
+    background: rgba(15, 23, 42, 0.95);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 7px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: var(--font-sans);
+    max-width: 340px;
+  }
+  .dock-meta {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  /* Grid Overview Overlay */
+  #grid-overlay {
+    position: fixed;
+    inset: 0 0 46px 0;
+    background: rgba(5, 8, 17, 0.96);
+    z-index: 70;
+    display: none;
+    flex-direction: column;
+    padding: 20px 28px;
+    overflow-y: auto;
+  }
+  #grid-overlay.open { display: flex; }
+  .grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  #overview-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .ov-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: transform 0.12s, border-color 0.12s;
+  }
+  .ov-card:hover { transform: translateY(-2px); border-color: var(--sky); }
+  .ov-card.current { border-color: var(--emerald); box-shadow: 0 0 0 1px var(--emerald); }
+  .ov-num { font-family: var(--font-mono); font-size: 11px; color: var(--sky); font-weight: 700; }
+  .ov-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin: 4px 0; line-height: 1.25; }
+  .ov-meta { font-size: 11px; color: var(--text-muted); }
+
+  /* Presenter Notes Drawer */
+  #notes-drawer {
+    position: fixed;
+    bottom: 54px;
+    right: 18px;
+    width: 460px;
+    max-width: calc(100vw - 36px);
+    background: rgba(11, 17, 32, 0.97);
+    border: 1px solid var(--sky);
+    border-radius: 12px;
+    padding: 14px 16px;
+    z-index: 65;
+    display: none;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.7);
+  }
+  #notes-drawer.open { display: block; }
+  #notes-drawer h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sky); margin-bottom: 6px; }
+  #notes-text { font-size: 12.5px; line-height: 1.45; color: var(--text-secondary); }
+
+  /* Cover Hero Specific */
+  .cover-hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 6px 0;
+  }
+  .hero-title {
+    font-size: 46px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.06;
+    background: linear-gradient(90deg, #f8fafc 0%, #7dd3fc 52%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-lead {
+    font-size: 17px;
+    color: var(--text-secondary);
+    max-width: 920px;
+    line-height: 1.42;
+    margin-top: 8px;
+  }
+
+  /* Print-to-PDF */
+  @page {
+    size: 1280px 720px;
+    margin: 0;
+  }
+  @media print {
+    html, body {
+      width: 1280px;
+      height: auto;
+      background: #0b1120 !important;
+      overflow: visible !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    #progress-track, #control-dock, #grid-overlay, #notes-drawer { display: none !important; }
+    #stage-wrapper {
+      width: 1280px !important;
+      height: auto !important;
+      display: block !important;
+      padding: 0 !important;
+    }
+    #deck-stage {
+      width: 1280px !important;
+      height: auto !important;
+      transform: none !important;
+    }
+    .slide {
+      display: flex !important;
+      position: relative !important;
+      page-break-after: always;
+      break-after: page;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      margin: 0 !important;
+    }
+    .slide:last-child { page-break-after: auto; break-after: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-track"><div id="progress-fill"></div></div>
+
+<main id="stage-wrapper">
+  <div id="deck-stage">
+
+    <!-- ==================== SLIDE 1 ==================== -->
+    <section class="slide active" data-slide="1" data-block="Bloco 1 · Matheus" data-time="00:00–00:30"
+      data-notes="Boas-vindas (00:00–00:30). Apresentar a plataforma AlertaCom (FIAP GS 2026/2 - Java Advanced, Turma 2TDSR), os 4 integrantes e o mapa exato da apresentação: Bloco 1 Matheus (Infra + Web), Bloco 2 Gabriel (JWT/RBAC + Spring AI), Bloco 3 Thomas (Domínio JPA + RabbitMQ), Bloco 4 Vitória (446 Testes + Negócio B2G/ODS).">
+      <div class="cover-hero">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="pill pill-emerald">FIAP Global Solution 2026/2</span>
+            <span class="pill pill-sky">Java Advanced · Turma 2TDSR</span>
+            <span class="pill pill-slate">br.com.fiap:alertacom-api:1.0.0</span>
+          </div>
+          <span class="time-chip">Slide 01 / 20</span>
+        </div>
+
+        <div>
+          <div class="hero-title">AlertaCom API</div>
+          <div style="font-size:21px; font-weight:700; color:#e2e8f0; margin-top:4px;">
+            Plataforma CitizenTech de Resiliência Urbana e Defesa Civil
+          </div>
+          <p class="hero-lead">
+            Apresentação completa cobrindo as <strong>8 camadas reais</strong> do backend em <strong>Java 21 LTS + Spring Boot 3.3.5</strong>:
+            Boot &amp; Docker, Segurança Stateless JWT/RBAC, Domínio JPA Oracle/H2, Web &amp; RFC 7807, RabbitMQ pós-commit,
+            Spring AI Dual-Engine, 446 Testes Automatizados e Impacto B2G / ODS 11 &amp; 13.
+          </p>
+        </div>
+
+        <div class="grid-4">
+          <div class="card card-sky">
+            <div class="card-title" style="color:var(--sky);">Bloco 1</div>
+            <div style="font-size:14px; font-weight:700;">Matheus Pereira Molina</div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">RM563399</div>
+            <div style="font-size:11.5px; color:var(--text-secondary); line-height:1.35;">Visão Geral (6 Zonas) · Camada 1 (Infra/Docker/Actuator) · Camada 4 (Web/DTOs/RFC 7807)</div>
+          </div>
+          <div class="card card-emerald">
+            <div class="card-title" style="color:var(--emerald);">Bloco 2</div>
+            <div style="font-size:14px; font-weight:700;">Gabriel Maciel Alves de Oliveira</div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">RM562795</div>
+            <div style="font-size:11.5px; color:var(--text-secondary); line-height:1.35;">Camada 2 (Stateless JWT, Filter, RBAC, Anti-IDOR) · Camada 6 (Spring AI Dual-Engine)</div>
+          </div>
+          <div class="card card-amber">
+            <div class="card-title" style="color:var(--amber);">Bloco 3</div>
+            <div style="font-size:14px; font-weight:700;">Thomas Fontes</div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">RM562254</div>
+            <div style="font-size:11.5px; color:var(--text-secondary); line-height:1.35;">Camada 3 (Domínio JPA, Oracle 23c, State Machine, Sequence) · Camada 5 (RabbitMQ AFTER_COMMIT)</div>
+          </div>
+          <div class="card card-violet">
+            <div class="card-title" style="color:var(--violet);">Bloco 4</div>
+            <div style="font-size:14px; font-weight:700;">Vitória Rodrigues Martins</div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">RM565160</div>
+            <div style="font-size:11.5px; color:var(--text-secondary); line-height:1.35;">Camada 7 (446 Testes: 366 + 80 E2E Tiers 1–4) · Camada 8 (B2G SaaS, ROI 7:1, ODS 11 &amp; 13)</div>
+          </div>
+        </div>
+
+        <div class="grid-4" style="gap:10px;">
+          <div class="kpi-box"><div class="kpi-val" style="color:var(--sky);">52</div><div class="kpi-lbl">Classes Java em src/main/java</div></div>
+          <div class="kpi-box"><div class="kpi-val" style="color:var(--emerald);">446</div><div class="kpi-lbl">Testes Surefire (0 Falhas)</div></div>
+          <div class="kpi-box"><div class="kpi-val" style="color:var(--amber);">8</div><div class="kpi-lbl">Camadas Arquiteturais Coesas</div></div>
+          <div class="kpi-box">
+            <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--text-primary); font-weight:700;">github.com/Gabriel-Maciel06/GS-Java</div>
+            <div style="font-family:var(--font-mono); font-size:11px; color:var(--emerald); margin-top:4px;">Pitch 5 min: youtu.be/xUBQAG9ehek</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SLIDE 2 ==================== -->
+    <section class="slide" data-slide="2" data-block="Bloco 1 · Matheus" data-time="00:30–01:30"
+      data-notes="Visão Geral (00:30–01:30). Explicar o apagão de comunicação urbana em desastres e percorrer as 6 Zonas do diagrama mestre: Clientes -> Segurança JWT -> Controllers/DTOs -> Domínio JPA/Oracle -> RabbitMQ pós-commit -> Spring AI Dual-Engine.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-sky">Visão Geral &amp; Arquitetura</span>
+            <span class="pill pill-emerald">Diagrama Mestre · 6 Zonas</span>
+          </div>
+          <h1 class="slide-title">Arquitetura Integrada das 8 Camadas (Request HTTP → Oracle → AMQP → IA)</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Matheus Pereira Molina (RM563399)</div>
+          <div class="time-chip">Slide 02 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="svg-wrap" style="padding:6px;">
+          <svg viewBox="0 0 1200 475" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, sans-serif">
+            <defs>
+              <marker id="arr-sky" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/></marker>
+              <marker id="arr-em" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+              <marker id="arr-am" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b"/></marker>
+              <marker id="arr-vi" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#a78bfa"/></marker>
+            </defs>
+
+            <!-- Zona 1: Clientes -->
+            <rect x="8" y="10" width="205" height="380" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-opacity="0.45" stroke-width="1.5"/>
+            <text x="20" y="32" fill="#38bdf8" font-size="11" font-weight="800">1. ZONA CLIENTES</text>
+            <rect x="20" y="48" width="181" height="58" rx="7" fill="#1e293b" stroke="#475569"/>
+            <text x="30" y="70" fill="#f8fafc" font-size="12" font-weight="700">Cidadão</text>
+            <text x="30" y="88" fill="#94a3b8" font-size="10.5" font-family="monospace">ROLE_CIDADAO · Smartphone</text>
+
+            <rect x="20" y="120" width="181" height="58" rx="7" fill="#1e293b" stroke="#475569"/>
+            <text x="30" y="142" fill="#f8fafc" font-size="12" font-weight="700">Gestor Defesa Civil</text>
+            <text x="30" y="160" fill="#94a3b8" font-size="10.5" font-family="monospace">ROLE_GESTOR · Painel 199</text>
+
+            <rect x="20" y="192" width="181" height="56" rx="7" fill="#1e293b" stroke="#475569"/>
+            <text x="30" y="214" fill="#f8fafc" font-size="12" font-weight="700">Swagger UI (OpenAPI)</text>
+            <text x="30" y="232" fill="#94a3b8" font-size="10" font-family="monospace">/swagger-ui.html (bearerAuth)</text>
+
+            <rect x="20" y="262" width="181" height="66" rx="7" fill="#1e293b" stroke="#475569"/>
+            <text x="30" y="284" fill="#f8fafc" font-size="12" font-weight="700">Actuator Observabilidade</text>
+            <text x="30" y="301" fill="#94a3b8" font-size="10" font-family="monospace">/actuator/health (público)</text>
+            <text x="30" y="317" fill="#fbbf24" font-size="10" font-family="monospace">/actuator/** (GESTOR)</text>
+
+            <text x="20" y="365" fill="#cbd5e1" font-size="10">HTTPS + JSON + Bearer JWT</text>
+
+            <!-- Arrow Z1 -> Z2 -->
+            <line x1="213" y1="165" x2="255" y2="165" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-sky)"/>
+
+            <!-- Zona 2: Segurança & Entrada Web -->
+            <rect x="259" y="10" width="295" height="380" rx="10" fill="#0f172a" stroke="#f43f5e" stroke-opacity="0.5" stroke-width="1.5"/>
+            <text x="272" y="32" fill="#f43f5e" font-size="11" font-weight="800">2. SEGURANÇA &amp; CAMADA WEB</text>
+
+            <rect x="272" y="48" width="269" height="92" rx="7" fill="#1e293b" stroke="#f43f5e" stroke-opacity="0.5"/>
+            <text x="282" y="68" fill="#f8fafc" font-size="12" font-weight="700">SecurityFilterChain (STATELESS)</text>
+            <text x="282" y="85" fill="#cbd5e1" font-size="10.5">• SecurityFilter (OncePerRequestFilter)</text>
+            <text x="282" y="101" fill="#cbd5e1" font-size="10.5">• TokenService (HMAC-256) + UserDetails DB</text>
+            <text x="282" y="117" fill="#fda4af" font-size="10">• 401 EntryPoint / 403 AccessDeniedHandler</text>
+            <text x="282" y="132" fill="#94a3b8" font-size="9.5">• /h2-console + SAMEORIGIN só em dev</text>
+
+            <rect x="272" y="152" width="269" height="122" rx="7" fill="#1e293b" stroke="#38bdf8" stroke-opacity="0.5"/>
+            <text x="282" y="172" fill="#f8fafc" font-size="12" font-weight="700">5 @RestControllers + DTOs record</text>
+            <text x="282" y="189" fill="#cbd5e1" font-size="10.5">• AuthController · CidadaoController</text>
+            <text x="282" y="205" fill="#cbd5e1" font-size="10.5">• OcorrenciaController · ProtocoloController</text>
+            <text x="282" y="221" fill="#cbd5e1" font-size="10.5">• BoletimController (@PreAuthorize GESTOR)</text>
+            <text x="282" y="238" fill="#6ee7b7" font-size="10">• 15 Java records · @Valid · Pageable</text>
+            <text x="282" y="254" fill="#94a3b8" font-size="10">• Anti-IDOR + Anti-Privilege Escalation</text>
+
+            <rect x="272" y="286" width="269" height="90" rx="7" fill="#182032" stroke="#fbbf24" stroke-dasharray="4 3"/>
+            <text x="282" y="306" fill="#fbbf24" font-size="11.5" font-weight="700">GlobalExceptionHandler (RFC 7807)</text>
+            <text x="282" y="324" fill="#cbd5e1" font-size="10.5">@RestControllerAdvice → ProblemDetail</text>
+            <text x="282" y="340" fill="#94a3b8" font-size="10" font-family="monospace">application/problem+json</text>
+            <text x="282" y="357" fill="#94a3b8" font-size="10">400·401·403·404·409·422·500 + timestamp</text>
+
+            <!-- Arrow Z2 -> Z3 -->
+            <line x1="554" y1="205" x2="594" y2="205" stroke="#10b981" stroke-width="2" marker-end="url(#arr-em)"/>
+
+            <!-- Zona 3: Domínio & Persistência -->
+            <rect x="598" y="10" width="285" height="380" rx="10" fill="#0f172a" stroke="#10b981" stroke-opacity="0.5" stroke-width="1.5"/>
+            <text x="610" y="32" fill="#10b981" font-size="11" font-weight="800">3. DOMÍNIO &amp; PERSISTÊNCIA</text>
+
+            <rect x="610" y="48" width="261" height="100" rx="7" fill="#1e293b" stroke="#10b981" stroke-opacity="0.45"/>
+            <text x="620" y="68" fill="#f8fafc" font-size="12" font-weight="700">Services (@Transactional)</text>
+            <text x="620" y="86" fill="#cbd5e1" font-size="10.5">• CidadaoService (BCrypt + soft delete)</text>
+            <text x="620" y="102" fill="#cbd5e1" font-size="10.5">• OcorrenciaService (Anti-IDOR + Event)</text>
+            <text x="620" y="118" fill="#cbd5e1" font-size="10.5">• ProtocoloService (synchronized + SLA)</text>
+            <text x="620" y="134" fill="#6ee7b7" font-size="10">• StatusOcorrencia State Machine</text>
+
+            <rect x="610" y="160" width="261" height="92" rx="7" fill="#1e293b" stroke="#475569"/>
+            <text x="620" y="180" fill="#f8fafc" font-size="12" font-weight="700">Repositórios Spring Data JPA</text>
+            <text x="620" y="198" fill="#cbd5e1" font-size="10.5">• FetchType.LAZY + JOIN FETCH</text>
+            <text x="620" y="214" fill="#cbd5e1" font-size="10.5">• findWithFilters (JPQL paginada)</text>
+            <text x="620" y="230" fill="#fbbf24" font-size="10" font-family="monospace">SEQ_PROTOCOLO_NUMERO.NEXTVAL</text>
+
+            <rect x="610" y="264" width="261" height="112" rx="7" fill="#162436" stroke="#10b981"/>
+            <text x="620" y="284" fill="#10b981" font-size="12" font-weight="700">Oracle 23c / H2 MODE=Oracle</text>
+            <text x="620" y="302" fill="#cbd5e1" font-size="10.5" font-family="monospace">TB_CIDADAO (1:N) TB_OCORRENCIA</text>
+            <text x="620" y="318" fill="#cbd5e1" font-size="10.5" font-family="monospace">(1:1) TB_PROTOCOLO_DEFESA_CIVIL</text>
+            <text x="620" y="336" fill="#94a3b8" font-size="10">• EnumType.STRING + CHECK + Índices</text>
+            <text x="620" y="354" fill="#38bdf8" font-size="10">• Startup: GestorSeedInitializer (@Order 1)</text>
+
+            <!-- Arrow Z3 -> Z4 (top right) & Z3 -> Z5 (bottom right) -->
+            <path d="M 883 105 L 923 105" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr-am)"/>
+            <path d="M 883 255 L 923 255" stroke="#a78bfa" stroke-width="2" marker-end="url(#arr-vi)"/>
+
+            <!-- Zona 4: Mensageria -->
+            <rect x="927" y="10" width="265" height="184" rx="10" fill="#0f172a" stroke="#f59e0b" stroke-opacity="0.55" stroke-width="1.5"/>
+            <text x="939" y="32" fill="#f59e0b" font-size="11" font-weight="800">4. MENSAGERIA RABBITMQ</text>
+            <rect x="939" y="44" width="241" height="62" rx="7" fill="#1e293b" stroke="#f59e0b" stroke-opacity="0.45"/>
+            <text x="949" y="62" fill="#f8fafc" font-size="11.5" font-weight="700">AlertaPublisherService</text>
+            <text x="949" y="78" fill="#6ee7b7" font-size="10">@TransactionalEventListener(AFTER_COMMIT)</text>
+            <text x="949" y="94" fill="#cbd5e1" font-size="9.5">Só ALTA/CRITICA · catch AmqpException</text>
+
+            <rect x="939" y="114" width="241" height="70" rx="7" fill="#1e293b" stroke="#475569"/>
+            <text x="949" y="132" fill="#fbbf24" font-size="11" font-weight="700" font-family="monospace">alerta.exchange (Topic)</text>
+            <text x="949" y="148" fill="#cbd5e1" font-size="10" font-family="monospace">alerta.critico.# → alertas.criticos.queue</text>
+            <text x="949" y="166" fill="#94a3b8" font-size="10">AlertaConsumerService (@RabbitListener)</text>
+
+            <!-- Zona 5: Spring AI -->
+            <rect x="927" y="206" width="265" height="184" rx="10" fill="#0f172a" stroke="#a78bfa" stroke-opacity="0.55" stroke-width="1.5"/>
+            <text x="939" y="228" fill="#a78bfa" font-size="11" font-weight="800">5. SPRING AI DUAL-ENGINE</text>
+            <rect x="939" y="240" width="241" height="58" rx="7" fill="#1e293b" stroke="#a78bfa" stroke-opacity="0.45"/>
+            <text x="949" y="258" fill="#f8fafc" font-size="11.5" font-weight="700">OpenAiBoletimServiceImpl</text>
+            <text x="949" y="274" fill="#cbd5e1" font-size="10">Lê JPA (sem RESOLVIDA/CANCELADA)</text>
+            <text x="949" y="289" fill="#94a3b8" font-size="9.5">SpringAiConfig.isChaveOpenAiValida()</text>
+
+            <rect x="939" y="306" width="117" height="74" rx="7" fill="#1b2942" stroke="#38bdf8"/>
+            <text x="947" y="324" fill="#38bdf8" font-size="10" font-weight="700">Branch A: LLM</text>
+            <text x="947" y="340" fill="#f8fafc" font-size="9.5" font-family="monospace">ChatModel.call()</text>
+            <text x="947" y="355" fill="#94a3b8" font-size="9">gpt-4o-mini</text>
+            <text x="947" y="370" fill="#6ee7b7" font-size="8.5" font-family="monospace">SPRING_AI_OPENAI</text>
+
+            <rect x="1063" y="306" width="117" height="74" rx="7" fill="#1c2c26" stroke="#10b981"/>
+            <text x="1071" y="324" fill="#10b981" font-size="10" font-weight="700">Branch B: Offline</text>
+            <text x="1071" y="340" fill="#f8fafc" font-size="9.5">Motor Heurístico</text>
+            <text x="1071" y="355" fill="#94a3b8" font-size="8.5" font-family="monospace">FALLBACK_</text>
+            <text x="1071" y="370" fill="#6ee7b7" font-size="8.5" font-family="monospace">DETERMINISTICO</text>
+
+            <!-- Zona 6: Barra Inferior Transversal -->
+            <rect x="8" y="404" width="1184" height="62" rx="10" fill="#11192d" stroke="#38bdf8" stroke-opacity="0.35" stroke-width="1.5"/>
+            <text x="24" y="427" fill="#38bdf8" font-size="11" font-weight="800">6. INFRAESTRUTURA &amp; QUALIDADE TRANSVERSAL</text>
+            <text x="24" y="449" fill="#e2e8f0" font-size="11.5">
+              Docker Multi-Stage (JRE 21 Alpine · não-root) + Compose (service_healthy: oracle-db + rabbitmq)  |  446 Testes (366 Unit/Int/Adversariais + 80 E2E 4 Tiers)  |  B2G SaaS · ROI 7:1 · ODS 11 &amp; 13
+            </text>
+          </svg>
+        </div>
+
+        <div class="why-box">
+          <div class="why-label">Por que o conceito CitizenTech + esta arquitetura integrada?</div>
+          <div style="font-size:12px; color:var(--text-secondary); line-height:1.38;">
+            O gargalo da Defesa Civil não é falta de chuva medida, e sim a <strong>assimetria de comunicação em tempo real</strong> entre a rua e o despacho tático. Ao transformar o smartphone do cidadão em sensor georreferenciado sobre uma arquitetura desacoplada (JWT Stateless + JPA Oracle/H2 + RabbitMQ pós-commit + Spring AI Dual-Engine), a cidade ganha resposta em milissegundos com <strong>zero CAPEX de hardware IoT</strong>.
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>AlertaCom</strong> · FIAP GS 2026/2 (2TDSR)</span>
+        <span>Visão Geral Integrada · Próximo: Camada 1 (Infraestrutura &amp; Profiles)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 3 ==================== -->
+    <section class="slide" data-slide="3" data-block="Bloco 1 · Matheus" data-time="01:30–02:30"
+      data-notes="Camada 1 Parte 1 (01:30–02:30). Destacar Java 21 + Boot 3.3.5, o problema resolvido pelo multi-profile (dev H2 MODE=Oracle vs docker Oracle 23c vs test) e o boot seguro com GestorSeedInitializer + fail-fast do JWT_SECRET.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-sky">Camada 1 · Boot, Infra &amp; Configs (1/2)</span>
+            <span class="pill pill-slate">pom.xml · application-*.yml</span>
+          </div>
+          <h1 class="slide-title">Stack Java 21 + Boot Seguro &amp; Arquitetura Multi-Profile</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Matheus Pereira Molina (RM563399)</div>
+          <div class="time-chip">Slide 03 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2-wide-left">
+          <div class="col-stack">
+            <div class="card card-sky">
+              <div class="card-title" style="color:var(--sky);">Stack Oficial Verificada (<code class="ic">pom.xml</code>)</div>
+              <ul class="tech-list">
+                <li><strong>Java 21 LTS + Spring Boot 3.3.5:</strong> <code class="ic">record</code> imutáveis, Text Blocks, <code class="ic">-XX:+EnableDynamicAgentLoading</code> no Surefire (ByteBuddy/Mockito).</li>
+                <li><strong>Spring AI 1.0.0-M3</strong> (<code class="ic">spring-ai-bom</code> via <code class="ic">repo.spring.io/milestone</code>) + <strong>SpringDoc OpenAPI 2.6.0</strong> (<code class="ic">OpenApiConfig</code> com <code class="ic">bearerAuth</code>).</li>
+                <li><strong>Auth0 <code class="ic">java-jwt:4.4.0</code></strong> + <strong>Spring AMQP</strong> + drivers <code class="ic">ojdbc11</code> (Oracle 23c) e <code class="ic">h2</code>.</li>
+              </ul>
+            </div>
+
+            <div class="card" style="padding:10px 12px;">
+              <div class="card-title" style="color:var(--emerald); margin-bottom:2px;">Matriz Multi-Profile (<code class="ic">src/main/resources/application*.yml</code>)</div>
+              <table class="data-table">
+                <thead>
+                  <tr><th>Configuração</th><th><code class="ic">dev</code> (Default)</th><th><code class="ic">docker</code> (Prod)</th><th><code class="ic">test</code> (CI / E2E)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>Banco / Dialeto</strong></td><td>H2 <code class="ic">MODE=Oracle</code></td><td>Oracle 23c <code class="ic">FREEPDB1</code></td><td>H2 <code class="ic">MODE=Oracle</code></td></tr>
+                  <tr><td><strong>Hibernate DDL</strong></td><td><code class="ic">create-drop</code> + SQL</td><td><code class="ic">update</code> (sem SQL log)</td><td><code class="ic">create-drop</code></td></tr>
+                  <tr><td><strong>RabbitMQ Listener</strong></td><td><code class="ic">auto-startup: false</code></td><td><code class="ic">auto-startup: true</code></td><td><code class="ic">auto-startup: false</code></td></tr>
+                  <tr><td><strong>OpenAI API Key</strong></td><td><code class="ic">"mock-key-dev"</code></td><td><code class="ic">${OPENAI_API_KEY}</code></td><td><code class="ic">"mock-key-test"</code></td></tr>
+                  <tr><td><strong>H2 &amp; FrameOpts</strong></td><td>Público · <code class="ic">SAMEORIGIN</code></td><td><code class="ic">denyAll()</code> · <code class="ic">DENY</code></td><td><code class="ic">denyAll()</code> · <code class="ic">DENY</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="col-stack">
+            <div class="code-panel" style="flex:1;">
+              <div class="code-header">
+                <span>GestorSeedInitializer.java + TokenService.java</span>
+                <span class="tag">Boot Seguro</span>
+              </div>
+              <pre class="code-body code-sm"><span class="cm">// GestorSeedInitializer.java — @Order(1), idempotente no startup</span>
+<span class="ann">@Component</span> <span class="ann">@Order</span>(<span class="num">1</span>)
+<span class="kw">public class</span> <span class="tp">GestorSeedInitializer</span> <span class="kw">implements</span> <span class="tp">CommandLineRunner</span> {
+  <span class="kw">public void</span> <span class="fn">run</span>(<span class="tp">String</span>... args) {
+    <span class="kw">if</span> (!cidadaoRepository.<span class="fn">existsByEmail</span>(gestorEmail)) {
+      <span class="kw">var</span> gestor = <span class="kw">new</span> <span class="tp">Cidadao</span>(gestorNome, gestorEmail, ...,
+          passwordEncoder.<span class="fn">encode</span>(gestorSenha), <span class="str">"ROLE_GESTOR"</span>);
+      cidadaoRepository.<span class="fn">save</span>(gestor);
+    }
+  }
+}
+<span class="cm">// TokenService.java:56-75 — Fail-Fast de entropia JWT no boot</span>
+<span class="ann">@PostConstruct</span>
+<span class="kw">public void</span> <span class="fn">validarConfiguracaoSegredo</span>() {
+  <span class="kw">boolean</span> isProd = <span class="fn">verificarSeAmbienteProducaoOuDocker</span>();
+  <span class="kw">if</span> ((secret == <span class="kw">null</span> || secret.<span class="fn">isBlank</span>()) &amp;&amp; isProd)
+    <span class="kw">throw new</span> <span class="tp">IllegalStateException</span>(<span class="str">"JWT_SECRET obrigatória em docker/prod"</span>);
+  <span class="fn">validarComprimentoSegredo</span>(<span class="kw">this</span>.secret); <span class="cm">// min 32 chars (256 bits)</span>
+  <span class="kw">if</span> (isProd &amp;&amp; SEGREDO_PADRAO_DEV.<span class="fn">equals</span>(secret.<span class="fn">trim</span>()))
+    <span class="kw">throw new</span> <span class="tp">IllegalStateException</span>(<span class="str">"Proibido segredo dev em docker/prod"</span>);
+}</pre>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que essas decisões na Camada 1?</div>
+              <ul class="tech-list">
+                <li><strong>H2 <code class="ic">MODE=Oracle</code> + <code class="ic">auto-startup: false</code>:</strong> Elimina 2 GB de RAM do Oracle e broker local no dia a dia sem perder paridade SQL (<code class="ic">SEQUENCE</code>, <code class="ic">VARCHAR2</code>).</li>
+                <li><strong>Seed + Fail-Fast:</strong> Resolve o "ovo e a galinha" do 1º gestor sem abrir cadastro público de admin e impede deploy em produção com chave JWT padrão do GitHub.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 1 (1/2)</strong> · <code class="ic">AlertaComApplication</code> · <code class="ic">GestorSeedInitializer</code> · <code class="ic">TokenService</code></span>
+        <span>Próximo: Dockerfile Multi-Stage, Compose &amp; Actuator Blindado</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 4 ==================== -->
+    <section class="slide" data-slide="4" data-block="Bloco 1 · Matheus" data-time="02:30–03:30"
+      data-notes="Camada 1 Parte 2 (02:30–03:30). Explicar Dockerfile multi-stage (cache go-offline, JRE Alpine, USER alertacom, MaxRAMPercentage=75%, exec java PID 1), docker-compose service_healthy, Actuator com rabbit.enabled=false e perfil Maven -Pe2e (mencionando honestamente que ci.yml reside na branch feature/ci-actions).">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-sky">Camada 1 · Boot, Infra &amp; Configs (2/2)</span>
+            <span class="pill pill-emerald">Docker · Actuator · Maven -Pe2e</span>
+          </div>
+          <h1 class="slide-title">Container Multi-Stage Não-Root, Compose &amp; Observabilidade Blindada</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Matheus Pereira Molina (RM563399)</div>
+          <div class="time-chip">Slide 04 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="col-stack">
+            <div class="code-panel">
+              <div class="code-header">
+                <span>Dockerfile (Multi-Stage · Não-Root · PID 1)</span>
+                <span class="tag">Production-Ready</span>
+              </div>
+              <pre class="code-body code-sm"><span class="cm"># Stage 1: Cache Maven + Build</span>
+<span class="kw">FROM</span> maven:3.9.9-eclipse-temurin-21-alpine <span class="kw">AS</span> build
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> pom.xml .
+<span class="kw">RUN</span> mvn dependency:go-offline -B
+<span class="kw">COPY</span> src ./src
+<span class="kw">RUN</span> mvn clean package -DskipTests -B
+
+<span class="cm"># Stage 2: Runtime JRE 21 Alpine + usuário não-root</span>
+<span class="kw">FROM</span> eclipse-temurin:21-jre-alpine <span class="kw">AS</span> runtime
+<span class="kw">RUN</span> addgroup -S alertacom &amp;&amp; adduser -S alertacom -G alertacom
+<span class="kw">COPY</span> --from=build /app/target/alertacom-api-1.0.0.jar app.jar
+<span class="kw">USER</span> alertacom
+<span class="kw">ENV</span> SPRING_PROFILES_ACTIVE=docker \
+    JAVA_OPTS=<span class="str">"-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"</span>
+<span class="kw">HEALTHCHECK</span> --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  <span class="kw">CMD</span> wget -qO- http://localhost:8080/actuator/health || exit 1
+<span class="kw">ENTRYPOINT</span> [<span class="str">"sh"</span>, <span class="str">"-c"</span>, <span class="str">"exec java $JAVA_OPTS -jar app.jar"</span>]</pre>
+            </div>
+
+            <div class="card card-amber">
+              <div class="card-title" style="color:var(--amber);">Actuator Blindado &amp; Esteira Maven / CI</div>
+              <ul class="tech-list">
+                <li><strong>Actuator (<code class="ic">application.yml</code>):</strong> expõe <code class="ic">health, info, metrics, prometheus, env, beans</code>; <code class="ic">health.show-details: when-authorized</code> (<code class="ic">GESTOR</code>); <code class="ic">/actuator/metrics|env|beans</code> exigem <code class="ic">ROLE_GESTOR</code>.</li>
+                <li><strong><code class="ic">management.health.rabbit.enabled: false</code>:</strong> Se RabbitMQ cair, <code class="ic">/actuator/health</code> permanece <code class="ic">UP</code> para manter gravação no Oracle (degradação graciosa).</li>
+                <li><strong>Maven &amp; CI:</strong> <code class="ic">mvn test</code> (366 rápidos) vs <code class="ic">mvn clean test -Pe2e -B</code> (446 totais). <em>Nota:</em> <code class="ic">.github/workflows/ci.yml</code> está na branch <code class="ic">feature/ci-actions</code> (<code class="ic">169c036</code>), pronto para merge na <code class="ic">main</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-stack">
+            <div class="svg-wrap" style="padding:8px;">
+              <svg viewBox="0 0 560 285" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+                <defs>
+                  <marker id="arr-c4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+                </defs>
+                <rect x="8" y="8" width="544" height="268" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-opacity="0.45"/>
+                <text x="22" y="30" fill="#38bdf8" font-size="11.5" font-weight="800">DOCKER-COMPOSE.YML · REDE BRIDGE: alertacom-net</text>
+
+                <!-- Oracle -->
+                <rect x="24" y="48" width="235" height="92" rx="8" fill="#1e293b" stroke="#10b981"/>
+                <text x="36" y="70" fill="#f8fafc" font-size="12.5" font-weight="700">oracle-db (Oracle 23c Free)</text>
+                <text x="36" y="88" fill="#94a3b8" font-size="10" font-family="monospace">gvenzl/oracle-free:23-slim-faststart</text>
+                <text x="36" y="105" fill="#cbd5e1" font-size="10">Porta 1521 · Vol: oracle_data</text>
+                <text x="36" y="123" fill="#6ee7b7" font-size="10">Health: healthcheck.sh (start 40s)</text>
+
+                <!-- RabbitMQ -->
+                <rect x="24" y="158" width="235" height="96" rx="8" fill="#1e293b" stroke="#f59e0b"/>
+                <text x="36" y="180" fill="#f8fafc" font-size="12.5" font-weight="700">rabbitmq (RabbitMQ 3.13)</text>
+                <text x="36" y="198" fill="#94a3b8" font-size="10" font-family="monospace">rabbitmq:3.13-management-alpine</text>
+                <text x="36" y="215" fill="#cbd5e1" font-size="10">Portas 5672 (AMQP) · 15672 (UI)</text>
+                <text x="36" y="233" fill="#fbbf24" font-size="10">Health: rabbitmq-diagnostics -q ping</text>
+
+                <!-- Gate -->
+                <path d="M 259 94 L 315 140" stroke="#10b981" stroke-width="2" marker-end="url(#arr-c4)"/>
+                <path d="M 259 206 L 315 162" stroke="#10b981" stroke-width="2" marker-end="url(#arr-c4)"/>
+                <rect x="268" y="128" width="110" height="44" rx="6" fill="#064e3b" stroke="#10b981"/>
+                <text x="323" y="146" text-anchor="middle" fill="#6ee7b7" font-size="9.5" font-weight="800">depends_on:</text>
+                <text x="323" y="162" text-anchor="middle" fill="#f8fafc" font-size="9.5" font-family="monospace">service_healthy</text>
+
+                <!-- API -->
+                <line x1="378" y1="150" x2="398" y2="150" stroke="#10b981" stroke-width="2" marker-end="url(#arr-c4)"/>
+                <rect x="402" y="74" width="136" height="154" rx="8" fill="#172554" stroke="#38bdf8" stroke-width="1.5"/>
+                <text x="412" y="98" fill="#f8fafc" font-size="12" font-weight="800">alertacom-api</text>
+                <text x="412" y="116" fill="#38bdf8" font-size="10" font-family="monospace">Porta :8080</text>
+                <text x="412" y="135" fill="#cbd5e1" font-size="10">Profile: docker</text>
+                <text x="412" y="152" fill="#cbd5e1" font-size="10">USER: alertacom</text>
+                <text x="412" y="169" fill="#fda4af" font-size="9.5">JWT_SECRET &gt;=256b</text>
+                <text x="412" y="187" fill="#6ee7b7" font-size="9.5">Probes /actuator/health</text>
+                <text x="412" y="205" fill="#94a3b8" font-size="9.5">exec java (PID 1)</text>
+              </svg>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que Multi-Stage, <code class="ic">exec java</code> e <code class="ic">service_healthy</code>?</div>
+              <ul class="tech-list">
+                <li><strong>Segurança &amp; Memória:</strong> Remove Maven/JDK da imagem final, roda sem <code class="ic">root</code> e limita heap a 75% do cgroup (<code class="ic">MaxRAMPercentage</code>) evitando <em>OOMKilled</em>.</li>
+                <li><strong>Graceful Shutdown &amp; Ordem de Boot:</strong> <code class="ic">exec java</code> torna a JVM PID 1 para receber <code class="ic">SIGTERM</code>; <code class="ic">service_healthy</code> impede a API de subir antes do Oracle (40s).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 1 (2/2)</strong> · <code class="ic">Dockerfile</code> · <code class="ic">docker-compose.yml</code> · <code class="ic">pom.xml (-Pe2e)</code></span>
+        <span>Próximo: Camada 4 (Camada Web, 15 record DTOs &amp; RFC 7807)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 5 ==================== -->
+    <section class="slide" data-slide="5" data-block="Bloco 1 · Matheus" data-time="03:30–04:15"
+      data-notes="Camada 4 Parte 1 (03:30–04:15). Mostrar os 5 @RestControllers — 20 métodos handler (+ aliases), Pageable com @PageableDefault, OpenAPI bearerAuth (apenas BoletimController tem @Tag/@Operation explícitos) e os 15 record DTOs com OcorrenciaRequest protegendo contra Mass Assignment.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-sky">Camada 4 · Web, DTOs &amp; Erros (1/2)</span>
+            <span class="pill pill-emerald">5 Controllers · 15 Java records</span>
+          </div>
+          <h1 class="slide-title">Controllers RESTful, <code class="ic">Pageable</code>, OpenAPI &amp; DTOs <code class="ic">record</code> Anti-Mass Assignment</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Matheus Pereira Molina (RM563399)</div>
+          <div class="time-chip">Slide 05 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2-wide-left">
+          <div class="col-stack">
+            <div class="card" style="padding:10px 12px;">
+              <div class="card-title" style="color:var(--sky);">5 <code class="ic">@RestController</code>s &amp; Semântica HTTP (20 Métodos · Aliases)</div>
+              <table class="data-table">
+                <thead>
+                  <tr><th>Controller</th><th>Rotas &amp; Contratos Principais</th><th>Status / Paginação</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>AuthController</strong></td><td><code class="ic">POST /api/auth/login</code> · <code class="ic">/register</code> · <code class="ic">/cadastro</code></td><td><code class="ic">200</code> / <code class="ic">201 + Location</code></td></tr>
+                  <tr><td><strong>CidadaoController</strong></td><td>CRUD <code class="ic">/api/cidadaos</code> + <code class="ic">/{id}</code> (Anti-IDOR)</td><td><code class="ic">Page&lt;CidadaoResponse&gt;</code> · <code class="ic">204</code></td></tr>
+                  <tr><td><strong>OcorrenciaController</strong></td><td><code class="ic">POST/GET /api/ocorrencias</code> · <code class="ic">/minhas</code> · <code class="ic">/{id}/status</code></td><td><code class="ic">@PageableDefault(10, DESC)</code></td></tr>
+                  <tr><td><strong>ProtocoloController</strong></td><td><code class="ic">POST /api/protocolos</code> · <code class="ic">/numero/**</code> · <code class="ic">/{id}/concluir</code></td><td><code class="ic">201 + Location</code> · <code class="ic">200</code></td></tr>
+                  <tr><td><strong>BoletimController</strong></td><td><code class="ic">POST/GET /api/relatorios/boletim-bairro</code> (<code class="ic">@Tag/@Operation</code>)</td><td><code class="ic">200 BoletimPreventivoResponse</code></td></tr>
+                </tbody>
+              </table>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+                <strong>OpenAPI (<code class="ic">OpenApiConfig</code>):</strong> SpringDoc 2.6.0 aplica <code class="ic">bearerAuth</code> globalmente; apenas <code class="ic">BoletimController</code> usa <code class="ic">@Tag</code>/<code class="ic">@Operation</code> explícitos.
+              </div>
+            </div>
+
+            <div class="card card-emerald">
+              <div class="card-title" style="color:var(--emerald);">Fluxo Seguro de 15 <code class="ic">record</code> DTOs (8 Request · 7 Response)</div>
+              <ul class="tech-list">
+                <li><strong>Anti-Mass Assignment (OWASP API3):</strong> <code class="ic">AtualizarCidadaoRequest</code> expõe só <code class="ic">{nome, telefone, bairro}</code> (bloqueia alteração de <code class="ic">role</code>, <code class="ic">ativo</code>, <code class="ic">id</code>).</li>
+                <li><strong>Zero MapStruct / Zero Vazamento:</strong> Services fazem <code class="ic">toEntity</code> seletivo; Responses usam <code class="ic">fromEntity()</code> estático + projeções <code class="ic">CidadaoResumoResponse</code> e <code class="ic">ProtocoloResumoResponse</code> (omitem <code class="ic">senha</code> e quebram recursão JPA).</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-stack">
+            <div class="code-panel" style="flex:1;">
+              <div class="code-header">
+                <span>OcorrenciaRequest.java:12-47 (Java 21 record + @Valid)</span>
+                <span class="tag">Fail-Fast HTTP</span>
+              </div>
+              <pre class="code-body code-sm"><span class="kw">public record</span> <span class="tp">OcorrenciaRequest</span>(
+    <span class="ann">@NotBlank</span> <span class="ann">@Size</span>(min = <span class="num">5</span>, max = <span class="num">120</span>) <span class="tp">String</span> titulo,
+    <span class="ann">@NotBlank</span> <span class="ann">@Size</span>(min = <span class="num">10</span>, max = <span class="num">1000</span>) <span class="tp">String</span> descricao,
+
+    <span class="ann">@NotNull</span>
+    <span class="ann">@JsonAlias</span>({<span class="str">"categoria"</span>, <span class="str">"tipoRisco"</span>})
+    <span class="tp">CategoriaOcorrencia</span> categoria,
+
+    <span class="ann">@NotNull</span> <span class="tp">SeveridadeOcorrencia</span> severidade,
+
+    <span class="ann">@DecimalMin</span>(<span class="str">"-90.0"</span>)  <span class="ann">@DecimalMax</span>(<span class="str">"90.0"</span>)  <span class="tp">Double</span> latitude,
+    <span class="ann">@DecimalMin</span>(<span class="str">"-180.0"</span>) <span class="ann">@DecimalMax</span>(<span class="str">"180.0"</span>) <span class="tp">Double</span> longitude,
+
+    <span class="ann">@NotBlank</span> <span class="ann">@Size</span>(max = <span class="num">255</span>) <span class="tp">String</span> endereco,
+    <span class="ann">@NotBlank</span> <span class="ann">@Size</span>(max = <span class="num">100</span>) <span class="tp">String</span> bairro,
+    <span class="ann">@NotNull</span> <span class="tp">Long</span> cidadaoId <span class="cm">// Ignorado p/ ROLE_CIDADAO (Anti-IDOR)</span>
+) {}</pre>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que <code class="ic">record</code> + <code class="ic">@Valid</code> + <code class="ic">Pageable</code>?</div>
+              <div style="font-size:11.8px; color:var(--text-secondary); line-height:1.38;">
+                <strong>1)</strong> <code class="ic">record</code> é <code class="ic">final</code> e sem setters (imutabilidade nativa). <strong>2)</strong> <code class="ic">@Valid</code> barra coordenadas ou textos inválidos na memória antes de abrir transação no Oracle. <strong>3)</strong> <code class="ic">Pageable</code> traduz para <code class="ic">OFFSET/FETCH NEXT</code> no Oracle, evitando <code class="ic">OutOfMemoryError</code> em listagens de tempestades.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 4 (1/2)</strong> · <code class="ic">OcorrenciaController</code> · <code class="ic">OcorrenciaRequest</code> · <code class="ic">OpenApiConfig</code></span>
+        <span>Próximo: Tratamento Global de Erros RFC 7807 (ProblemDetail)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 6 ==================== -->
+    <section class="slide" data-slide="6" data-block="Bloco 1 · Matheus" data-time="04:15–05:00"
+      data-notes="Camada 4 Parte 2 (04:15–05:00). Mostrar como Filter Chain (401/403) e @RestControllerAdvice (400/404/409/422/500) convergem para ProblemDetail RFC 7807. Encerrar Bloco 1 e passar a fala ao Gabriel.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-sky">Camada 4 · Web, DTOs &amp; Erros (2/2)</span>
+            <span class="pill pill-amber">RFC 7807 · ProblemDetail</span>
+          </div>
+          <h1 class="slide-title">Tratamento Global de Erros: RFC 7807 Unificada (Filter Chain + MVC)</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Matheus Pereira Molina (RM563399)</div>
+          <div class="time-chip">Slide 06 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="svg-wrap" style="flex:0 0 185px; padding:6px;">
+          <svg viewBox="0 0 1180 175" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+            <defs>
+              <marker id="arr-p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#fbbf24"/></marker>
+              <marker id="arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+            </defs>
+            <rect x="10" y="54" width="175" height="68" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="97" y="82" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="700">Requisição HTTP</text>
+            <text x="97" y="102" text-anchor="middle" fill="#94a3b8" font-size="10.5" font-family="monospace">JSON + Bearer JWT</text>
+
+            <line x1="185" y1="88" x2="225" y2="88" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-p)"/>
+
+            <!-- SecurityFilterChain -->
+            <rect x="229" y="12" width="235" height="58" rx="8" fill="#2a1622" stroke="#f43f5e"/>
+            <text x="346" y="34" text-anchor="middle" fill="#fda4af" font-size="11.5" font-weight="700">Via 1: SecurityFilterChain (401/403)</text>
+            <text x="346" y="52" text-anchor="middle" fill="#cbd5e1" font-size="10">CustomAuthenticationEntryPoint · AccessDeniedHandler</text>
+
+            <!-- MVC / Service -->
+            <rect x="229" y="102" width="235" height="60" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="346" y="124" text-anchor="middle" fill="#38bdf8" font-size="11.5" font-weight="700">@RestController (@Valid) → Service</text>
+            <text x="346" y="144" text-anchor="middle" fill="#cbd5e1" font-size="10">Exceção 400 / 404 / 409 / 422 / 500</text>
+
+            <path d="M 464 132 L 520 132" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-p)"/>
+            <rect x="524" y="102" width="250" height="60" rx="8" fill="#261f12" stroke="#f59e0b"/>
+            <text x="649" y="124" text-anchor="middle" fill="#fbbf24" font-size="11.5" font-weight="700">Via 2: GlobalExceptionHandler</text>
+            <text x="649" y="144" text-anchor="middle" fill="#cbd5e1" font-size="10">@RestControllerAdvice (13 @ExceptionHandlers)</text>
+
+            <!-- Convergence -->
+            <path d="M 464 41 L 836 72" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-p)"/>
+            <path d="M 774 132 L 836 102" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr-p)"/>
+
+            <rect x="840" y="24" width="328" height="126" rx="10" fill="#062c22" stroke="#10b981" stroke-width="1.8"/>
+            <text x="856" y="48" fill="#10b981" font-size="12" font-weight="800">Contrato Único RFC 7807 (ProblemDetail)</text>
+            <text x="856" y="67" fill="#6ee7b7" font-size="10.5" font-family="monospace">Content-Type: application/problem+json</text>
+            <text x="856" y="88" fill="#e2e8f0" font-size="10.5" font-family="monospace">{ type, title, status, detail,</text>
+            <text x="856" y="105" fill="#e2e8f0" font-size="10.5" font-family="monospace">  timestamp, invalidParams[] }</text>
+            <text x="856" y="130" fill="#94a3b8" font-size="10">URI: https://alertacom.fiap.com.br/errors/...</text>
+          </svg>
+        </div>
+
+        <div class="grid-2">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>GlobalExceptionHandler.java:30-49, 99-109</span>
+              <span class="tag">ProblemDetail Spring 6</span>
+            </div>
+            <pre class="code-body code-sm"><span class="ann">@RestControllerAdvice</span>
+<span class="kw">public class</span> <span class="tp">GlobalExceptionHandler</span> {
+  <span class="ann">@ExceptionHandler</span>(<span class="tp">MethodArgumentNotValidException</span>.<span class="kw">class</span>)
+  <span class="kw">public</span> <span class="tp">ProblemDetail</span> <span class="fn">handleValidation</span>(<span class="tp">MethodArgumentNotValidException</span> ex) {
+    <span class="kw">var</span> problem = <span class="tp">ProblemDetail</span>.<span class="fn">forStatusAndDetail</span>(
+        <span class="tp">HttpStatus</span>.BAD_REQUEST, <span class="str">"Erro de validação nos campos da requisição"</span>);
+    problem.<span class="fn">setTitle</span>(<span class="str">"Requisição Inválida"</span>);
+    problem.<span class="fn">setType</span>(<span class="tp">URI</span>.<span class="fn">create</span>(<span class="str">"https://alertacom.fiap.com.br/errors/bad-request"</span>));
+    problem.<span class="fn">setProperty</span>(<span class="str">"timestamp"</span>, <span class="tp">Instant</span>.<span class="fn">now</span>());
+    <span class="cm">// Mapeia FieldErrors -> invalidParams: [{field, message}]</span>
+    problem.<span class="fn">setProperty</span>(<span class="str">"invalidParams"</span>, invalidParams);
+    <span class="kw">return</span> problem;
+  }
+  <span class="ann">@ExceptionHandler</span>(<span class="tp">RegraNegocioException</span>.<span class="kw">class</span>)
+  <span class="kw">public</span> <span class="tp">ProblemDetail</span> <span class="fn">handleRegraNegocio</span>(<span class="tp">RegraNegocioException</span> ex) {
+    <span class="kw">var</span> p = <span class="tp">ProblemDetail</span>.<span class="fn">forStatusAndDetail</span>(<span class="tp">HttpStatus</span>.UNPROCESSABLE_ENTITY, ex.<span class="fn">getMessage</span>());
+    p.<span class="fn">setTitle</span>(<span class="str">"Violação de Regra de Negócio"</span>);
+    p.<span class="fn">setProperty</span>(<span class="str">"timestamp"</span>, <span class="tp">Instant</span>.<span class="fn">now</span>());
+    <span class="kw">return</span> p;
+  }
+}</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card" style="padding:9px 12px;">
+              <div class="card-title" style="color:var(--amber);">Mapa de Exceções → Status Semântico</div>
+              <table class="data-table">
+                <tbody>
+                  <tr><td><code class="ic">400</code></td><td><code class="ic">MethodArgumentNotValidException</code> (<code class="ic">invalidParams</code>) / <code class="ic">IllegalArgumentException</code></td></tr>
+                  <tr><td><code class="ic">401/403</code></td><td><code class="ic">BadCredentials</code>/<code class="ic">UsernameNotFound</code> (msg única!) / <code class="ic">AccessDenied</code></td></tr>
+                  <tr><td><code class="ic">404/409</code></td><td><code class="ic">ResourceNotFoundException</code> / <code class="ic">DuplicateResource</code> / <code class="ic">DataIntegrityViolation</code></td></tr>
+                  <tr><td><code class="ic">422/500</code></td><td><code class="ic">RegraNegocioException</code> / <code class="ic">IllegalStateException</code> / <code class="ic">Exception</code> (oculta stack)</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que RFC 7807 nas duas vias + mascaramento?</div>
+              <div style="font-size:11.8px; color:var(--text-secondary); line-height:1.36;">
+                Erros <code class="ic">401</code>/<code class="ic">403</code> na Filter Chain ocorrem antes do <code class="ic">DispatcherServlet</code>; sem <code class="ic">CustomAuthenticationEntryPoint</code> e <code class="ic">CustomAccessDeniedHandler</code>, o contrato quebraria. Além disso, <code class="ic">409</code>/<code class="ic">500</code> ocultam SQL Oracle e <code class="ic">401</code> impede enumeração de e-mails.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Bloco 1</strong> · Matheus Pereira Molina</span>
+        <span>Transição → <strong>Gabriel Maciel</strong>: Camada 2 (Segurança Stateless JWT &amp; RBAC)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 7 ==================== -->
+    <section class="slide" data-slide="7" data-block="Bloco 2 · Gabriel" data-time="05:00–06:00"
+      data-notes="Bloco 2 inicia com Gabriel Maciel (05:00–06:00). Camada 2 Parte 1: explicar por que Stateless JWT + HMAC-SHA256 vence JSESSIONID em picos de desastres, por que CSRF é desabilitado sem cookies, por que BCrypt protege senhas e o fail-fast 256 bits.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-emerald">Bloco 2 · Gabriel Maciel</span>
+            <span class="pill pill-rose">Camada 2 · Segurança JWT &amp; RBAC (1/3)</span>
+          </div>
+          <h1 class="slide-title">Segurança Stateless JWT (HMAC-SHA256), BCrypt &amp; Fail-Fast 256 Bits</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Gabriel Maciel A. Oliveira (RM562795)</div>
+          <div class="time-chip">Slide 07 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>SecurityConfig.java:73-125 + TokenService.java:109-119</span>
+              <span class="tag">Spring Security 6.3 + java-jwt 4.4.0</span>
+            </div>
+            <pre class="code-body code-sm"><span class="cm">// SecurityConfig.java — Cadeia Stateless + Method Security</span>
+<span class="ann">@EnableWebSecurity</span> <span class="ann">@EnableMethodSecurity</span>(prePostEnabled = <span class="kw">true</span>)
+<span class="kw">public</span> <span class="tp">SecurityFilterChain</span> <span class="fn">securityFilterChain</span>(<span class="tp">HttpSecurity</span> http, ...) {
+  <span class="kw">return</span> http
+    .<span class="fn">csrf</span>(<span class="tp">AbstractHttpConfigurer</span>::disable)
+    .<span class="fn">sessionManagement</span>(s -&gt; s.<span class="fn">sessionCreationPolicy</span>(<span class="tp">SessionCreationPolicy</span>.STATELESS))
+    .<span class="fn">headers</span>(h -&gt; h.<span class="fn">frameOptions</span>(isDev ? sameOrigin : deny))
+    .<span class="fn">addFilterBefore</span>(securityFilter, <span class="tp">UsernamePasswordAuthenticationFilter</span>.<span class="kw">class</span>)
+    .<span class="fn">exceptionHandling</span>(ex -&gt; ex
+        .<span class="fn">authenticationEntryPoint</span>(authenticationEntryPoint) <span class="cm">// 401 RFC 7807</span>
+        .<span class="fn">accessDeniedHandler</span>(accessDeniedHandler))          <span class="cm">// 403 RFC 7807</span>
+    .<span class="fn">build</span>();
+}
+
+<span class="cm">// TokenService.java — Emissão HMAC-SHA256 (validade 24h = 86.400.000 ms)</span>
+<span class="tp">Algorithm</span> algorithm = <span class="tp">Algorithm</span>.<span class="fn">HMAC256</span>(secret); <span class="cm">// min 32 chars (256 bits)</span>
+<span class="kw">return</span> <span class="tp">JWT</span>.<span class="fn">create</span>()
+    .<span class="fn">withIssuer</span>(<span class="str">"alertacom-api"</span>)
+    .<span class="fn">withSubject</span>(cidadao.<span class="fn">getEmail</span>())
+    .<span class="fn">withClaim</span>(<span class="str">"id"</span>, cidadao.<span class="fn">getId</span>())
+    .<span class="fn">withClaim</span>(<span class="str">"nome"</span>, cidadao.<span class="fn">getNome</span>())
+    .<span class="fn">withClaim</span>(<span class="str">"role"</span>, cidadao.<span class="fn">getRole</span>())
+    .<span class="fn">withClaim</span>(<span class="str">"bairro"</span>, cidadao.<span class="fn">getBairro</span>())
+    .<span class="fn">withIssuedAt</span>(<span class="tp">Instant</span>.<span class="fn">now</span>()).<span class="fn">withExpiresAt</span>(<span class="fn">getExpiracaoInstant</span>())
+    .<span class="fn">sign</span>(algorithm);</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-rose">
+              <div class="card-title" style="color:var(--rose);">Por que Stateless JWT vs <code class="ic">JSESSIONID</code> em Desastres?</div>
+              <ul class="tech-list">
+                <li><strong>Escalabilidade Elástica:</strong> Em tempestades, picos de acessos exigem múltiplas réplicas sem <em>sticky sessions</em> nem Redis de sessão.</li>
+                <li><strong>Sobrevivência a Restarts:</strong> Rolling deploys ou reinícios de container não derrubam sessões em RAM de munícipes nem de gestores em campo.</li>
+                <li><strong>Multicanal B2G:</strong> Mesmo token <code class="ic">Bearer</code> atende app mobile, painel web da Defesa Civil e integrações externas.</li>
+              </ul>
+            </div>
+
+            <div class="card card-sky">
+              <div class="card-title" style="color:var(--sky);">Criptografia &amp; Decisões de Superfície</div>
+              <ul class="tech-list">
+                <li><strong>Por que <code class="ic">csrf().disable()</code>?</strong> CSRF explora envio automático de cookies pelo navegador; como o AlertaCom usa header explícito <code class="ic">Authorization: Bearer</code> sem cookies, CSRF não se aplica e habilitá-lo bloquearia <code class="ic">POST/PATCH/DELETE</code> legítimos.</li>
+                <li><strong>Por que <code class="ic">BCryptPasswordEncoder</code>?</strong> Salt aleatório por senha + fator de custo adaptativo contra quebra offline por GPU / rainbow tables.</li>
+                <li><strong>Por que Fail-Fast 256 bits?</strong> Alinhado à RFC 7518 para HS256; impede subir <code class="ic">docker</code>/<code class="ic">prod</code> com segredo curto ou padrão <code class="ic">dev</code>.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 2 (1/3)</strong> · <code class="ic">SecurityConfig</code> · <code class="ic">TokenService</code> · <code class="ic">BCryptPasswordEncoder</code></span>
+        <span>Próximo: SecurityFilter (OncePerRequestFilter) &amp; Fluxo de Requisição</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 8 ==================== -->
+    <section class="slide" data-slide="8" data-block="Bloco 2 · Gabriel" data-time="06:00–07:00"
+      data-notes="Camada 2 Parte 2 (06:00–07:00). Mostrar o diagrama completo de interceptação por requisição e o código real de SecurityFilter (OncePerRequestFilter). Destacar a reconsulta ao DB via UserDetailsServiceImpl + isEnabled() para revogação instantânea e zero backdoor.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-emerald">Bloco 2 · Gabriel Maciel</span>
+            <span class="pill pill-rose">Camada 2 · Segurança JWT &amp; RBAC (2/3)</span>
+          </div>
+          <h1 class="slide-title"><code class="ic">SecurityFilter</code> (<code class="ic">OncePerRequestFilter</code>) &amp; Revogação Real no Banco</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Gabriel Maciel A. Oliveira (RM562795)</div>
+          <div class="time-chip">Slide 08 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="svg-wrap" style="flex:0 0 180px; padding:6px;">
+          <svg viewBox="0 0 1180 172" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+            <defs>
+              <marker id="arr-s8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/></marker>
+              <marker id="arr-r8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f43f5e"/></marker>
+              <marker id="arr-g8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+            </defs>
+            <rect x="8" y="45" width="150" height="72" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="83" y="74" text-anchor="middle" fill="#f8fafc" font-size="11.5" font-weight="700">HTTP Request</text>
+            <text x="83" y="94" text-anchor="middle" fill="#94a3b8" font-size="9.5" font-family="monospace">Authorization: Bearer</text>
+
+            <line x1="158" y1="81" x2="188" y2="81" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-s8)"/>
+
+            <rect x="192" y="28" width="215" height="108" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="299" y="50" text-anchor="middle" fill="#38bdf8" font-size="11.5" font-weight="700">SecurityFilter</text>
+            <text x="299" y="66" text-anchor="middle" fill="#94a3b8" font-size="9.5">(OncePerRequestFilter)</text>
+            <text x="299" y="86" text-anchor="middle" fill="#cbd5e1" font-size="10">1. TokenService.validarToken()</text>
+            <text x="299" y="102" text-anchor="middle" fill="#cbd5e1" font-size="10">   HMAC256 + iss="alertacom-api"</text>
+            <text x="299" y="122" text-anchor="middle" fill="#fbbf24" font-size="9.5">Sem token / inválido → Anônimo</text>
+
+            <line x1="407" y1="81" x2="439" y2="81" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-s8)"/>
+
+            <rect x="443" y="28" width="225" height="108" rx="8" fill="#261f12" stroke="#f59e0b"/>
+            <text x="555" y="50" text-anchor="middle" fill="#fbbf24" font-size="11.5" font-weight="700">UserDetailsServiceImpl</text>
+            <text x="555" y="68" text-anchor="middle" fill="#cbd5e1" font-size="10">loadUserByUsername(email) no DB</text>
+            <text x="555" y="88" text-anchor="middle" fill="#6ee7b7" font-size="10">isEnabled() (ativo == true)?</text>
+            <text x="555" y="108" text-anchor="middle" fill="#f8fafc" font-size="9.5">Popula SecurityContextHolder</text>
+            <text x="555" y="124" text-anchor="middle" fill="#fda4af" font-size="9.5">Inexistente/Inativo → Rejeitado</text>
+
+            <line x1="668" y1="81" x2="700" y2="81" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-s8)"/>
+
+            <rect x="704" y="28" width="215" height="108" rx="8" fill="#1e293b" stroke="#a78bfa"/>
+            <text x="811" y="52" text-anchor="middle" fill="#a78bfa" font-size="11.5" font-weight="700">AuthorizationFilter</text>
+            <text x="811" y="72" text-anchor="middle" fill="#cbd5e1" font-size="10">requestMatchers RBAC</text>
+            <text x="811" y="89" text-anchor="middle" fill="#cbd5e1" font-size="10">+ @PreAuthorize("hasRole(...)")</text>
+            <text x="811" y="114" text-anchor="middle" fill="#94a3b8" font-size="9.5">permitAll | CIDADAO | GESTOR</text>
+
+            <path d="M 919 52 L 966 36" stroke="#f43f5e" stroke-width="2" marker-end="url(#arr-r8)"/>
+            <path d="M 919 108 L 966 126" stroke="#10b981" stroke-width="2" marker-end="url(#arr-g8)"/>
+
+            <rect x="970" y="12" width="202" height="58" rx="8" fill="#2a1622" stroke="#f43f5e"/>
+            <text x="1071" y="34" text-anchor="middle" fill="#fda4af" font-size="11" font-weight="700">401 / 403 RFC 7807</text>
+            <text x="1071" y="52" text-anchor="middle" fill="#cbd5e1" font-size="9.5">EntryPoint / AccessDeniedHandler</text>
+
+            <rect x="970" y="96" width="202" height="62" rx="8" fill="#062c22" stroke="#10b981"/>
+            <text x="1071" y="118" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="700">Controller + Anti-IDOR</text>
+            <text x="1071" y="136" text-anchor="middle" fill="#cbd5e1" font-size="9.5">200 / 201 / 204 ou 403 IDOR</text>
+          </svg>
+        </div>
+
+        <div class="grid-2-wide-left">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>SecurityFilter.java:36-65 (OncePerRequestFilter)</span>
+              <span class="tag">Sem Backdoor em Memória</span>
+            </div>
+            <pre class="code-body code-sm"><span class="ann">@Override</span>
+<span class="kw">protected void</span> <span class="fn">doFilterInternal</span>(<span class="tp">HttpServletRequest</span> req, <span class="tp">HttpServletResponse</span> res,
+    <span class="tp">FilterChain</span> chain) <span class="kw">throws</span> <span class="tp">ServletException</span>, <span class="tp">IOException</span> {
+  <span class="tp">String</span> token = <span class="fn">extrairToken</span>(req);
+  <span class="kw">if</span> (token != <span class="kw">null</span>) {
+    <span class="tp">String</span> email = tokenService.<span class="fn">validarToken</span>(token);
+    <span class="kw">if</span> (email != <span class="kw">null</span> &amp;&amp; !email.<span class="fn">isBlank</span>()
+        &amp;&amp; <span class="tp">SecurityContextHolder</span>.<span class="fn">getContext</span>().<span class="fn">getAuthentication</span>() == <span class="kw">null</span>) {
+      <span class="kw">try</span> {
+        <span class="tp">UserDetails</span> ud = userDetailsService.<span class="fn">loadUserByUsername</span>(email);
+        <span class="kw">if</span> (ud != <span class="kw">null</span> &amp;&amp; ud.<span class="fn">isEnabled</span>()) {
+          <span class="kw">var</span> auth = <span class="kw">new</span> <span class="tp">UsernamePasswordAuthenticationToken</span>(ud, <span class="kw">null</span>, ud.<span class="fn">getAuthorities</span>());
+          auth.<span class="fn">setDetails</span>(<span class="kw">new</span> <span class="tp">WebAuthenticationDetailsSource</span>().<span class="fn">buildDetails</span>(req));
+          <span class="tp">SecurityContextHolder</span>.<span class="fn">getContext</span>().<span class="fn">setAuthentication</span>(auth);
+        }
+      } <span class="kw">catch</span> (<span class="tp">UsernameNotFoundException</span> ex) { <span class="cm">/* log.warn: token fantasma */</span> }
+    }
+  }
+  chain.<span class="fn">doFilter</span>(req, res);
+}</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-emerald">
+              <div class="card-title" style="color:var(--emerald);">Por que <code class="ic">OncePerRequestFilter</code> antes do Auth Filter?</div>
+              <ul class="tech-list">
+                <li>Garante execução <strong>exatamente 1x por requisição</strong> mesmo com dispatches internos (<code class="ic">forward</code>/<code class="ic">error</code>).</li>
+                <li>Posicionado via <code class="ic">addFilterBefore(..., UsernamePasswordAuthenticationFilter.class)</code> para popular o <code class="ic">SecurityContextHolder</code> antes do <code class="ic">AuthorizationFilter</code> avaliar rotas e <code class="ic">@PreAuthorize</code>.</li>
+                <li>Não lança exceção crua em rotas <code class="ic">permitAll()</code> sem token: mantém contexto anônimo e deixa o <code class="ic">CustomAuthenticationEntryPoint</code> atuar só se a rota for protegida.</li>
+              </ul>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Revogação Imediata (Resolvendo o ponto fraco do JWT)</div>
+              <div style="font-size:11.8px; color:var(--text-secondary); line-height:1.36;">
+                Em JWT puro, um token roubado valeria por 24h mesmo após bloqueio da conta. Como o <code class="ic">SecurityFilter</code> sempre consulta <code class="ic">UserDetailsServiceImpl</code> + <code class="ic">isEnabled()</code> (<code class="ic">ativo = true</code>), desativar um munícipe ou forjar token de e-mail inexistente resulta em <strong>bloqueio imediato (401)</strong>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 2 (2/3)</strong> · <code class="ic">SecurityFilter</code> · <code class="ic">UserDetailsServiceImpl</code> · <code class="ic">Cidadao.isEnabled()</code></span>
+        <span>Próximo: Matriz RBAC (ROLE_CIDADAO vs ROLE_GESTOR) &amp; Anti-IDOR</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 9 ==================== -->
+    <section class="slide" data-slide="9" data-block="Bloco 2 · Gabriel" data-time="07:00–07:45"
+      data-notes="Camada 2 Parte 3 (07:00–07:45). Apresentar a matriz RBAC exata (apenas ROLE_CIDADAO e ROLE_GESTOR), proteção contra Privilege Escalation no cadastro, proteção Anti-IDOR e Anti-Enumeração em CidadaoController e OcorrenciaService.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-emerald">Bloco 2 · Gabriel Maciel</span>
+            <span class="pill pill-rose">Camada 2 · Segurança JWT &amp; RBAC (3/3)</span>
+          </div>
+          <h1 class="slide-title">Matriz RBAC (<code class="ic">ROLE_CIDADAO</code> vs <code class="ic">ROLE_GESTOR</code>), Anti-Escalada &amp; Anti-IDOR</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Gabriel Maciel A. Oliveira (RM562795)</div>
+          <div class="time-chip">Slide 09 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2-wide-left">
+          <div class="card" style="padding:10px 12px;">
+            <div class="card-title" style="color:var(--sky);">Matriz RBAC Exata do Sistema (2 Roles: <code class="ic">ROLE_CIDADAO</code> · <code class="ic">ROLE_GESTOR</code>)</div>
+            <table class="data-table">
+              <thead>
+                <tr><th>Nível</th><th>Endpoints / Padrões</th><th>Regra &amp; Proteção Adicional</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="pill pill-slate">Público</span></td>
+                  <td><code class="ic">POST /api/auth/**</code> · <code class="ic">POST /api/cidadaos</code><br><code class="ic">GET|POST /api/protocolos/numero/**</code> · <code class="ic">/actuator/health|info</code> · <code class="ic">/swagger-ui/**</code></td>
+                  <td>Cadastro força <code class="ic">ROLE_CIDADAO</code>. Health oculta detalhes se não for <code class="ic">GESTOR</code>.</td>
+                </tr>
+                <tr>
+                  <td><span class="pill pill-sky">Cidadão<br>+ Gestor</span></td>
+                  <td><code class="ic">POST /api/ocorrencias</code> · <code class="ic">GET /api/ocorrencias/minhas</code><br><code class="ic">GET|PUT /api/cidadaos/{id}</code> · <code class="ic">GET /api/ocorrencias/**</code> · <code class="ic">/protocolos/**</code></td>
+                  <td><strong>Anti-IDOR:</strong> cidadão só acessa próprio <code class="ic">{id}</code> e próprio <code class="ic">cidadaoId</code>.</td>
+                </tr>
+                <tr>
+                  <td><span class="pill pill-rose">Exclusivo<br>GESTOR</span></td>
+                  <td><code class="ic">GET|DELETE /api/cidadaos/**</code> · <code class="ic">PATCH|DELETE /api/ocorrencias/{id}*</code><br><code class="ic">POST /api/protocolos</code> · <code class="ic">PATCH|PUT /api/protocolos/{id}/concluir</code><br><code class="ic">/api/relatorios/**</code> · <code class="ic">/api/boletim*/**</code> · <code class="ic">/actuator/**</code></td>
+                  <td>Defesa em profundidade: <code class="ic">SecurityConfig</code> + <code class="ic">@PreAuthorize("hasRole('GESTOR')")</code>.</td>
+                </tr>
+                <tr>
+                  <td><span class="pill pill-amber">Perfil dev</span></td>
+                  <td><code class="ic">/h2-console/**</code></td>
+                  <td><code class="ic">permitAll()</code> só em <code class="ic">dev</code>; <code class="ic">denyAll()</code> + <code class="ic">DENY</code> fora de <code class="ic">dev</code>.</td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="font-size:10.5px; color:var(--text-muted); margin-top:4px;">
+              <strong>Nota:</strong> O sistema possui exclusivamente os 2 papéis (<code class="ic">ROLE_CIDADAO</code> e <code class="ic">ROLE_GESTOR</code>), validados por <code class="ic">CK_CIDADAO_ROLE</code> e <code class="ic">@Pattern</code>.
+            </div>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-rose">
+              <div class="card-title" style="color:var(--rose);">1. Anti-Privilege Escalation (<code class="ic">AuthController</code> &amp; <code class="ic">CidadaoController</code>)</div>
+              <div style="font-size:12px; color:var(--text-secondary); line-height:1.38;">
+                Mesmo que um invasor envie <code class="ic">"role": "ROLE_GESTOR"</code> em <code class="ic">POST /api/auth/register</code> ou <code class="ic">/api/cidadaos</code>, o backend sobrescreve para <code class="ic">"ROLE_CIDADAO"</code> — apenas um <code class="ic">ROLE_GESTOR</code> já autenticado pode criar outro gestor.
+              </div>
+            </div>
+
+            <div class="card card-amber">
+              <div class="card-title" style="color:var(--amber);">2. Anti-IDOR + Anti-Enumeração (<code class="ic">CidadaoController</code> &amp; <code class="ic">OcorrenciaService</code>)</div>
+              <ul class="tech-list">
+                <li><strong><code class="ic">CidadaoController.validarAcessoProprioOuGestor(id)</code>:</strong> Checa identidade do JWT <strong>antes</strong> de consultar o banco, retornando <code class="ic">403 Forbidden</code> até para IDs inexistentes (elimina oráculo <code class="ic">404</code> vs <code class="ic">403</code>).</li>
+                <li><strong><code class="ic">OcorrenciaService.resolverCidadaoAutenticado()</code>:</strong> Para <code class="ic">ROLE_CIDADAO</code>, ignora <code class="ic">request.cidadaoId()</code> e vincula ao dono do JWT; <code class="ic">ROLE_GESTOR</code> pode abrir para terceiros (atendimento 199).</li>
+              </ul>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que Menor Privilégio &amp; Anti-IDOR em Defesa Civil?</div>
+              <div style="font-size:11.6px; color:var(--text-secondary); line-height:1.36;">
+                Em plataformas B2G, impedir que cidadãos emitam protocolos oficiais, cancelem chamados alheios ou leiam PII de vizinhos protege a LGPD e impede mobilização fraudulenta de viaturas públicas.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 2 (3/3)</strong> · Validado em <code class="ic">SecurityRbacIntegrationTest</code> &amp; <code class="ic">IdorAndJwtAdversarialStressTest</code></span>
+        <span>Próximo: Camada 6 — Spring AI Grounded no Domínio JPA</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 10 ==================== -->
+    <section class="slide" data-slide="10" data-block="Bloco 2 · Gabriel" data-time="07:45–09:00"
+      data-notes="Camada 6 Parte 1 (07:45–09:00). Mostrar que a IA do AlertaCom não é um chatbot genérico: está ancorada (grounded) nas ocorrências ativas do JPA, calcula risco/pontos/recomendações de forma determinística no Java e usa ChatModel apenas para a síntese executiva.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-emerald">Bloco 2 · Gabriel Maciel</span>
+            <span class="pill pill-violet">Camada 6 · Spring AI Dual-Engine (1/2)</span>
+          </div>
+          <h1 class="slide-title">Spring AI Grounded no Domínio JPA (Não é um Chatbot Solto)</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Gabriel Maciel A. Oliveira (RM562795)</div>
+          <div class="time-chip">Slide 10 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2-wide-right">
+          <div class="col-stack">
+            <div class="card card-violet">
+              <div class="card-title" style="color:var(--violet);">Entrada Segura &amp; Grounding Transacional</div>
+              <ul class="tech-list">
+                <li><strong>Endpoints (<code class="ic">BoletimController</code>):</strong> <code class="ic">POST/GET /api/relatorios/boletim-bairro</code> (e <code class="ic">/api/boletim/preventivo</code>, <code class="ic">/api/boletins/preventivo</code>) com <code class="ic">@PreAuthorize("hasRole('GESTOR')")</code> + <code class="ic">SecurityConfig</code>.</li>
+                <li><strong>Preservação de <code class="ic">&amp;</code>:</strong> <code class="ic">resolverBairro()</code> decodifica a query string bruta para suportar nomes compostos (ex.: <code class="ic">"Jardim São Luís - Área 3 &amp; Setor Sul"</code>).</li>
+                <li><strong>Filtro JPA:</strong> <code class="ic">findWithFilters(...)</code> busca o bairro (case-insensitive) e <strong>descarta</strong> <code class="ic">RESOLVIDA</code> e <code class="ic">CANCELADA</code>. <em>(Obs.: <code class="ic">horasHistorico</code> integra o DTO, mas o filtro atual considera todas as ativas.)</em></li>
+              </ul>
+            </div>
+
+            <div class="card card-emerald">
+              <div class="card-title" style="color:var(--emerald);">Saída Híbrida: Determinístico vs. Generativo</div>
+              <ul class="tech-list">
+                <li><strong>100% Determinístico (Java/JPA — Zero Alucinação):</strong> <code class="ic">nivelRiscoGeral</code> (<code class="ic">"CRITICO"</code>/<code class="ic">"ALTO"</code>/<code class="ic">"MODERADO"</code>/<code class="ic">"BAIXO"</code>), <code class="ic">pontosCriticosEvitar</code> (<code class="ic">LinkedHashSet</code>), <code class="ic">recomendacoesPopulacao</code> (<code class="ic">EnumSet</code>) e <code class="ic">planoAcaoDefesaCivil</code> (<code class="ic">switch</code>).</li>
+                <li><strong>Sintetizado + Auditável:</strong> <code class="ic">resumoSituacaoAtual</code> (LLM ou fallback), <code class="ic">modoExecucao</code> e <code class="ic">modeloUtilizado</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-stack">
+            <div class="code-panel" style="flex:1;">
+              <div class="code-header">
+                <span>OpenAiBoletimServiceImpl.java:336-355 + BoletimPreventivoResponse.java</span>
+                <span class="tag">Grounding Anti-Alucinação</span>
+              </div>
+              <pre class="code-body code-sm"><span class="cm">// Prompt Grounded nos incidentes ativos reais do banco</span>
+<span class="kw">private</span> <span class="tp">String</span> <span class="fn">construirPromptDefesaCivil</span>(<span class="tp">String</span> bairro, <span class="tp">String</span> nivelRisco, <span class="tp">List</span>&lt;<span class="tp">Ocorrencia</span>&gt; ocs) {
+  <span class="tp">StringBuilder</span> sb = <span class="kw">new</span> <span class="tp">StringBuilder</span>();
+  sb.<span class="fn">append</span>(<span class="str">"Você é um especialista da Defesa Civil Municipal (ODS 11 e ODS 13).\n"</span>);
+  sb.<span class="fn">append</span>(<span class="str">"Elabore um resumo executivo (máximo 4 frases) sobre '"</span>).<span class="fn">append</span>(bairro)
+    .<span class="fn">append</span>(<span class="str">"', risco geral: "</span>).<span class="fn">append</span>(nivelRisco).<span class="fn">append</span>(<span class="str">".\n"</span>);
+  sb.<span class="fn">append</span>(<span class="str">"Total de ocorrências ativas: "</span>).<span class="fn">append</span>(ocs.<span class="fn">size</span>()).<span class="fn">append</span>(<span class="str">".\n"</span>);
+  <span class="cm">// Injeta -[severidade/categoria] titulo em endereco: descricao</span>
+  <span class="cm">// Se vazia: "Informe situação de normalidade sem inventar incidentes."</span>
+  <span class="kw">return</span> sb.<span class="fn">toString</span>();
+}
+
+<span class="cm">// BoletimPreventivoResponse.java:10-22 (10 campos auditáveis)</span>
+<span class="kw">public record</span> <span class="tp">BoletimPreventivoResponse</span>(
+    <span class="tp">String</span> bairro, <span class="tp">LocalDateTime</span> dataEmissao, <span class="tp">Integer</span> totalOcorrenciasAnalisadas,
+    <span class="tp">String</span> nivelRiscoGeral, <span class="tp">String</span> resumoSituacaoAtual,
+    <span class="tp">List</span>&lt;<span class="tp">String</span>&gt; recomendacoesPopulacao, <span class="tp">List</span>&lt;<span class="tp">String</span>&gt; pontosCriticosEvitar,
+    <span class="tp">String</span> planoAcaoDefesaCivil, <span class="tp">String</span> modoExecucao, <span class="tp">String</span> modeloUtilizado
+) {}</pre>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que Structured Output Híbrido em vez de JSON livre do LLM?</div>
+              <div style="font-size:11.6px; color:var(--text-secondary); line-height:1.36;">
+                Em despacho de viaturas, o modelo de linguagem nunca pode inventar uma rua interditada ou errar o nível de severidade. Calcular os campos estruturais em Java/JPA e limitar o LLM ao resumo textual elimina risco de alucinação operacional.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 6 (1/2)</strong> · <code class="ic">BoletimController</code> · <code class="ic">BoletimIaService</code> · <code class="ic">BoletimPreventivoResponse</code></span>
+        <span>Próximo: Arquitetura Dual-Engine (SPRING_AI_OPENAI vs FALLBACK_DETERMINISTICO)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 11 ==================== -->
+    <section class="slide" data-slide="11" data-block="Bloco 2 · Gabriel" data-time="09:00–10:15"
+      data-notes="Camada 6 Parte 2 (09:00–10:15). Explicar o diagrama de decisão Dual-Engine via ChatModel (Spring AI 1.0.0-M3) e SpringAiConfig.isChaveOpenAiValida(). Destacar Zero-Failure em crise e transição para o Thomas (10:15).">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-emerald">Bloco 2 · Gabriel Maciel</span>
+            <span class="pill pill-violet">Camada 6 · Spring AI Dual-Engine (2/2)</span>
+          </div>
+          <h1 class="slide-title">Arquitetura Dual-Engine: <code class="ic">SPRING_AI_OPENAI</code> vs <code class="ic">FALLBACK_DETERMINISTICO</code></h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Gabriel Maciel A. Oliveira (RM562795)</div>
+          <div class="time-chip">Slide 11 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="svg-wrap" style="flex:0 0 180px; padding:6px;">
+          <svg viewBox="0 0 1180 172" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+            <defs>
+              <marker id="arr-s11" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#a78bfa"/></marker>
+              <marker id="arr-g11" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+              <marker id="arr-b11" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/></marker>
+            </defs>
+            <rect x="8" y="42" width="190" height="86" rx="8" fill="#1e293b" stroke="#a78bfa"/>
+            <text x="103" y="64" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">1. Grounding JPA</text>
+            <text x="103" y="84" text-anchor="middle" fill="#cbd5e1" font-size="9.5">validarBairro() → 400 se vazio</text>
+            <text x="103" y="100" text-anchor="middle" fill="#cbd5e1" font-size="9.5">findWithFilters(bairro)</text>
+            <text x="103" y="116" text-anchor="middle" fill="#6ee7b7" font-size="9.5">Exclui RESOLVIDA/CANCELADA</text>
+
+            <line x1="198" y1="85" x2="226" y2="85" stroke="#a78bfa" stroke-width="2" marker-end="url(#arr-s11)"/>
+
+            <rect x="230" y="36" width="215" height="98" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="337" y="58" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="700">2. Núcleo Determinístico</text>
+            <text x="337" y="77" text-anchor="middle" fill="#cbd5e1" font-size="9.5">• calcularNivelRiscoGeral()</text>
+            <text x="337" y="93" text-anchor="middle" fill="#cbd5e1" font-size="9.5">• extrairPontosCriticosEvitar()</text>
+            <text x="337" y="109" text-anchor="middle" fill="#cbd5e1" font-size="9.5">• gerarRecomendacoesPopulacao()</text>
+            <text x="337" y="125" text-anchor="middle" fill="#cbd5e1" font-size="9.5">• gerarPlanoAcaoDefesaCivil()</text>
+
+            <line x1="445" y1="85" x2="475" y2="85" stroke="#a78bfa" stroke-width="2" marker-end="url(#arr-s11)"/>
+
+            <rect x="479" y="42" width="222" height="86" rx="8" fill="#261f12" stroke="#f59e0b"/>
+            <text x="590" y="65" text-anchor="middle" fill="#fbbf24" font-size="10.5" font-weight="700">3. Gate Dual-Engine</text>
+            <text x="590" y="85" text-anchor="middle" fill="#f8fafc" font-size="9.5" font-family="monospace">chatModel != null &amp;&amp;</text>
+            <text x="590" y="102" text-anchor="middle" fill="#f8fafc" font-size="9.5" font-family="monospace">isChaveOpenAiValida(key)</text>
+            <text x="590" y="118" text-anchor="middle" fill="#94a3b8" font-size="9">dev/test: mock-key-* → FALSE</text>
+
+            <path d="M 701 62 L 758 38" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-b11)"/>
+            <path d="M 701 108 L 758 130" stroke="#10b981" stroke-width="2" marker-end="url(#arr-g11)"/>
+
+            <rect x="762" y="10" width="408" height="66" rx="8" fill="#172554" stroke="#38bdf8"/>
+            <text x="776" y="30" fill="#38bdf8" font-size="11" font-weight="700">Ramo A: chatModel.call(prompt) [try/catch]</text>
+            <text x="776" y="47" fill="#cbd5e1" font-size="9.5" font-family="monospace">modoExecucao = "SPRING_AI_OPENAI" | modelo = "gpt-4o-mini"</text>
+            <text x="776" y="63" fill="#fda4af" font-size="9">Se lançar Exception / timeout / blank → cai automaticamente no Ramo B!</text>
+
+            <rect x="762" y="92" width="408" height="68" rx="8" fill="#062c22" stroke="#10b981"/>
+            <text x="776" y="113" fill="#10b981" font-size="11" font-weight="700">Ramo B: gerarBoletimDeterministico() → HTTP 200 OK</text>
+            <text x="776" y="130" fill="#cbd5e1" font-size="9.5" font-family="monospace">modoExecucao = "FALLBACK_DETERMINISTICO"</text>
+            <text x="776" y="146" fill="#6ee7b7" font-size="9.5" font-family="monospace">modeloUtilizado = "fallback-deterministico-defesa-civil-v1"</text>
+          </svg>
+        </div>
+
+        <div class="grid-2">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>SpringAiConfig.java:38-50 + OpenAiBoletimServiceImpl.java:88-121</span>
+              <span class="tag">ChatModel + Try/Catch Resiliente</span>
+            </div>
+            <pre class="code-body code-sm"><span class="cm">// SpringAiConfig.java — Rejeita chaves mock/placeholder sem I/O externo</span>
+<span class="kw">public static boolean</span> <span class="fn">isChaveOpenAiValida</span>(<span class="tp">String</span> apiKey) {
+  <span class="kw">if</span> (apiKey == <span class="kw">null</span> || apiKey.<span class="fn">isBlank</span>()) <span class="kw">return false</span>;
+  <span class="tp">String</span> norm = apiKey.<span class="fn">trim</span>().<span class="fn">toLowerCase</span>();
+  <span class="kw">return</span> !norm.<span class="fn">startsWith</span>(<span class="str">"mock"</span>) &amp;&amp; !norm.<span class="fn">startsWith</span>(<span class="str">"dummy"</span>)
+      &amp;&amp; !norm.<span class="fn">contains</span>(<span class="str">"sua-chave"</span>) &amp;&amp; !norm.<span class="fn">contains</span>(<span class="str">"placeholder"</span>)
+      &amp;&amp; !norm.<span class="fn">equals</span>(<span class="str">"test"</span>) &amp;&amp; !norm.<span class="fn">equals</span>(<span class="str">"none"</span>) &amp;&amp; !norm.<span class="fn">equals</span>(<span class="str">"disabled"</span>);
+}
+<span class="cm">// OpenAiBoletimServiceImpl.java — @Autowired(required = false) ChatModel</span>
+<span class="kw">if</span> (chatModel != <span class="kw">null</span> &amp;&amp; <span class="tp">SpringAiConfig</span>.<span class="fn">isChaveOpenAiValida</span>(openAiApiKey)) {
+  <span class="kw">try</span> {
+    <span class="tp">String</span> sinteseIa = chatModel.<span class="fn">call</span>(<span class="fn">construirPromptDefesaCivil</span>(...));
+    <span class="kw">if</span> (sinteseIa != <span class="kw">null</span> &amp;&amp; !sinteseIa.<span class="fn">isBlank</span>())
+      <span class="kw">return new</span> <span class="tp">BoletimPreventivoResponse</span>(..., MODO_OPENAI, openAiModel);
+  } <span class="kw">catch</span> (<span class="tp">Exception</span> ex) { log.<span class="fn">warn</span>(<span class="str">"Fallback acionado: {}"</span>, ex.<span class="fn">getMessage</span>()); }
+}
+<span class="kw">return</span> <span class="fn">gerarBoletimDeterministico</span>(bairroLimpo, ocs, nivelRiscoGeral, ...);</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-violet">
+              <div class="card-title" style="color:var(--violet);">Por que <code class="ic">ChatModel</code> (Spring AI 1.0.0-M3) vs SDK Proprietário?</div>
+              <ul class="tech-list">
+                <li><strong>Portabilidade sem Rewrite:</strong> Trocar OpenAI (<code class="ic">gpt-4o-mini</code>) por Ollama local (Llama) ou Azure OpenAI exige apenas trocar o starter Maven e propriedades YAML.</li>
+                <li><strong>Injeção Opcional (<code class="ic">required = false</code>):</strong> O contexto Spring sobe mesmo sem provedor configurado.</li>
+                <li><strong>Testabilidade Nativa:</strong> <code class="ic">BoletimIaServiceTest</code> mocka <code class="ic">ChatModel.call()</code> para testar sucesso e exceção de timeout.</li>
+              </ul>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que Arquitetura Dual-Engine em Emergências?</div>
+              <div style="font-size:11.8px; color:var(--text-secondary); line-height:1.36;">
+                Em tempestades com queda de internet ou limite HTTP 429 da OpenAI, a Defesa Civil <strong>não pode receber HTTP 500</strong>. A comutação determinística entrega <code class="ic">HTTP 200 OK</code> em &lt;5 ms e zera custos de tokens nos 446 testes e em <code class="ic">dev</code>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Bloco 2</strong> · Gabriel Maciel Alves de Oliveira</span>
+        <span>Transição → <strong>Thomas Fontes</strong>: Camada 3 (Domínio JPA &amp; Oracle) + Camada 5 (RabbitMQ)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 12 ==================== -->
+    <section class="slide" data-slide="12" data-block="Bloco 3 · Thomas" data-time="10:15–11:15"
+      data-notes="Bloco 3 inicia com Thomas Fontes (10:15–11:15). Camada 3 Parte 1: Diagrama ER de 3 tabelas + SEQ_PROTOCOLO_NUMERO, persistência dual Oracle 23c / H2 MODE=Oracle, EnumType.STRING + CHECK constraints e arquitetura híbrida IDENTITY (PKs) + SEQUENCE (DEF-YYYY-NNNNN).">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-amber">Bloco 3 · Thomas Fontes</span>
+            <span class="pill pill-emerald">Camada 3 · Domínio JPA &amp; Persistência (1/3)</span>
+          </div>
+          <h1 class="slide-title">Modelo de Domínio JPA &amp; Persistência Dual Oracle 23c / H2 <code class="ic">MODE=Oracle</code></h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Thomas Fontes (RM562254)</div>
+          <div class="time-chip">Slide 12 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2-wide-left">
+          <div class="svg-wrap" style="padding:8px;">
+            <svg viewBox="0 0 660 440" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+              <defs>
+                <marker id="arr-er" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+              </defs>
+              <!-- TB_CIDADAO -->
+              <rect x="12" y="14" width="295" height="196" rx="9" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5"/>
+              <rect x="12" y="14" width="295" height="30" rx="9" fill="#172554"/>
+              <text x="24" y="34" fill="#f8fafc" font-size="12" font-weight="800">TB_CIDADAO (Cidadao)</text>
+              <text x="24" y="62" fill="#fbbf24" font-size="10.5" font-family="monospace">PK id_cidadao NUMBER(19) IDENTITY</text>
+              <text x="24" y="80" fill="#cbd5e1" font-size="10.5" font-family="monospace">   nome VARCHAR2(150) NOT NULL</text>
+              <text x="24" y="98" fill="#6ee7b7" font-size="10.5" font-family="monospace">UK email VARCHAR2(100) UK_CIDADAO_EMAIL</text>
+              <text x="24" y="116" fill="#cbd5e1" font-size="10.5" font-family="monospace">   telefone, bairro, senha (BCrypt)</text>
+              <text x="24" y="134" fill="#fda4af" font-size="10.5" font-family="monospace">CK role IN (ROLE_CIDADAO, ROLE_GESTOR)</text>
+              <text x="24" y="152" fill="#cbd5e1" font-size="10.5" font-family="monospace">CK ativo NUMBER(1) IN (0, 1)</text>
+              <text x="24" y="170" fill="#94a3b8" font-size="10" font-family="monospace">   data_cadastro (@PrePersist)</text>
+              <text x="24" y="194" fill="#38bdf8" font-size="10">1:N → ocorrencias (LAZY, CASCADE, orphanRemoval)</text>
+
+              <!-- TB_PROTOCOLO -->
+              <rect x="12" y="232" width="295" height="194" rx="9" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5"/>
+              <rect x="12" y="232" width="295" height="30" rx="9" fill="#2c1d09"/>
+              <text x="24" y="252" fill="#fbbf24" font-size="12" font-weight="800">TB_PROTOCOLO_DEFESA_CIVIL</text>
+              <text x="24" y="280" fill="#fbbf24" font-size="10.5" font-family="monospace">PK id_protocolo NUMBER(19) IDENTITY</text>
+              <text x="24" y="298" fill="#6ee7b7" font-size="10.5" font-family="monospace">FK,UK ocorrencia_id (UK_PROTOCOLO_OCOR.)</text>
+              <text x="24" y="316" fill="#6ee7b7" font-size="10.5" font-family="monospace">UK numero_protocolo DEF-YYYY-NNNNN</text>
+              <text x="24" y="334" fill="#cbd5e1" font-size="10.5" font-family="monospace">   equipe_responsavel, parecer_tecnico</text>
+              <text x="24" y="352" fill="#cbd5e1" font-size="10.5" font-family="monospace">   data_emissao, data_previsao (@Future)</text>
+              <text x="24" y="370" fill="#cbd5e1" font-size="10.5" font-family="monospace">   data_conclusao (concluirAtendimento)</text>
+              <rect x="24" y="384" width="271" height="32" rx="5" fill="#1e293b" stroke="#f59e0b" stroke-dasharray="3 2"/>
+              <text x="32" y="404" fill="#fbbf24" font-size="10" font-family="monospace">SEQ_PROTOCOLO_NUMERO (INC 1 NOCACHE)</text>
+
+              <!-- TB_OCORRENCIA -->
+              <rect x="348" y="42" width="300" height="352" rx="9" fill="#0f172a" stroke="#10b981" stroke-width="1.5"/>
+              <rect x="348" y="42" width="300" height="30" rx="9" fill="#064e3b"/>
+              <text x="360" y="62" fill="#6ee7b7" font-size="12" font-weight="800">TB_OCORRENCIA (Ocorrencia)</text>
+              <text x="360" y="90" fill="#fbbf24" font-size="10.5" font-family="monospace">PK id_ocorrencia NUMBER(19) IDENTITY</text>
+              <text x="360" y="108" fill="#38bdf8" font-size="10.5" font-family="monospace">FK cidadao_id (IDX_OCORRENCIA_CIDADAO)</text>
+              <text x="360" y="128" fill="#cbd5e1" font-size="10.5" font-family="monospace">   titulo(120), descricao(1000)</text>
+              <text x="360" y="148" fill="#6ee7b7" font-size="10.5" font-family="monospace">   categoria (EnumType.STRING + CK)</text>
+              <text x="360" y="168" fill="#6ee7b7" font-size="10.5" font-family="monospace">   severidade (EnumType.STRING + IDX)</text>
+              <text x="360" y="188" fill="#6ee7b7" font-size="10.5" font-family="monospace">   status VARCHAR2(35) (STRING + IDX)</text>
+              <text x="360" y="208" fill="#cbd5e1" font-size="10.5" font-family="monospace">   latitude, longitude NUMBER(10,7)</text>
+              <text x="360" y="228" fill="#cbd5e1" font-size="10.5" font-family="monospace">   endereco(255), bairro(100) (IDX)</text>
+              <text x="360" y="248" fill="#94a3b8" font-size="10" font-family="monospace">   data_criacao (@PrePersist)</text>
+              <text x="360" y="266" fill="#94a3b8" font-size="10" font-family="monospace">   data_atualizacao (@PreUpdate)</text>
+              <text x="360" y="294" fill="#cbd5e1" font-size="10">4 Índices: BAIRRO, STATUS, SEVERIDADE,</text>
+              <text x="360" y="310" fill="#cbd5e1" font-size="10">CIDADAO + FK ON DELETE CASCADE</text>
+              <text x="360" y="338" fill="#94a3b8" font-size="10">Cancelamento: parâmetro recebido em</text>
+              <text x="360" y="356" fill="#94a3b8" font-size="10">OcorrenciaController.cancelar() (sem coluna)</text>
+
+              <!-- Relations -->
+              <path d="M 307 110 L 348 110" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-er)"/>
+              <text x="314" y="102" fill="#38bdf8" font-size="10" font-weight="700">1:N</text>
+              <path d="M 348 296 L 307 296" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr-er)"/>
+              <text x="314" y="288" fill="#fbbf24" font-size="10" font-weight="700">1:1</text>
+            </svg>
+          </div>
+
+          <div class="col-stack">
+            <div class="code-panel">
+              <div class="code-header">
+                <span>ProtocoloDefesaCivil.java + Ocorrencia.java</span>
+                <span class="tag">Oracle 23c + H2 Dual</span>
+              </div>
+              <pre class="code-body code-sm"><span class="ann">@Entity</span> <span class="ann">@Table</span>(name = <span class="str">"TB_PROTOCOLO_DEFESA_CIVIL"</span>, uniqueConstraints = {
+  <span class="ann">@UniqueConstraint</span>(name = <span class="str">"UK_PROTOCOLO_NUMERO"</span>, columnNames = <span class="str">"numero_protocolo"</span>),
+  <span class="ann">@UniqueConstraint</span>(name = <span class="str">"UK_PROTOCOLO_OCORRENCIA"</span>, columnNames = <span class="str">"ocorrencia_id"</span>)
+})
+<span class="ann">@SequenceGenerator</span>(name = <span class="str">"seq_protocolo_gen"</span>,
+    sequenceName = <span class="str">"SEQ_PROTOCOLO_NUMERO"</span>, allocationSize = <span class="num">1</span>)
+<span class="kw">public class</span> <span class="tp">ProtocoloDefesaCivil</span> <span class="kw">implements</span> <span class="tp">Serializable</span> {
+  <span class="ann">@Id</span> <span class="ann">@GeneratedValue</span>(strategy = <span class="tp">GenerationType</span>.IDENTITY)
+  <span class="ann">@Column</span>(name = <span class="str">"id_protocolo"</span>) <span class="kw">private</span> <span class="tp">Long</span> id;
+  <span class="cm">// Ocorrencia.java — Enums persistidos como texto legível</span>
+  <span class="ann">@Enumerated</span>(<span class="tp">EnumType</span>.STRING)
+  <span class="ann">@Column</span>(name = <span class="str">"status"</span>, length = <span class="num">35</span>, nullable = <span class="kw">false</span>)
+  <span class="kw">private</span> <span class="tp">StatusOcorrencia</span> status = <span class="tp">StatusOcorrencia</span>.ABERTA;
+}</pre>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Justificativas Técnicas (Por que essas escolhas no JPA?)</div>
+              <ul class="tech-list">
+                <li><strong><code class="ic">EnumType.STRING</code> vs <code class="ic">ORDINAL</code>:</strong> <code class="ic">ORDINAL</code> grava <code class="ic">0, 1, 2</code>; inserir nova categoria no meio do enum corromperia dados históricos silenciosamente. <code class="ic">STRING</code> casa com as <code class="ic">CHECK</code> constraints do <code class="ic">schema.sql</code>.</li>
+                <li><strong>Arquitetura Híbrida Oracle 23c:</strong> PKs usam <code class="ic">GENERATED BY DEFAULT AS IDENTITY</code>; <code class="ic">SEQ_PROTOCOLO_NUMERO</code> (<code class="ic">allocationSize = 1, NOCACHE</code>) gera <code class="ic">DEF-YYYY-NNNNN</code> sem saltos nem conflito Hi/Lo.</li>
+                <li><strong>DDL Dual:</strong> <code class="ic">schema.sql</code> testado em H2 <code class="ic">MODE=Oracle</code> (<code class="ic">SchemaSqlCompatibilityTest</code>).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 3 (1/3)</strong> · <code class="ic">Cidadao</code> · <code class="ic">Ocorrencia</code> · <code class="ic">ProtocoloDefesaCivil</code> · <code class="ic">schema.sql</code></span>
+        <span>Próximo: Domínio Rico, Máquina de Estados &amp; Contrato Vlad Mihalcea</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 13 ==================== -->
+    <section class="slide" data-slide="13" data-block="Bloco 3 · Thomas" data-time="11:15–12:00"
+      data-notes="Camada 3 Parte 2 (11:15–12:00). Apresentar a máquina de estados StatusOcorrencia (6 estados, RESOLVIDA e CANCELADA terminais imutáveis), métodos de domínio rico (vincularProtocolo, concluirAtendimento) e equals/hashCode Vlad Mihalcea.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-amber">Bloco 3 · Thomas Fontes</span>
+            <span class="pill pill-emerald">Camada 3 · Domínio JPA &amp; Persistência (2/3)</span>
+          </div>
+          <h1 class="slide-title">Domínio Rico, Máquina de Estados <code class="ic">StatusOcorrencia</code> &amp; Vlad Mihalcea</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Thomas Fontes (RM562254)</div>
+          <div class="time-chip">Slide 13 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="svg-wrap" style="flex:0 0 152px; padding:4px 6px;">
+          <svg viewBox="0 0 1180 175" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+            <defs>
+              <marker id="arr-st" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/></marker>
+              <marker id="arr-ok" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+              <marker id="arr-no" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f43f5e"/></marker>
+            </defs>
+            <rect x="18" y="42" width="145" height="54" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="90" y="66" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="800">ABERTA</text>
+            <text x="90" y="84" text-anchor="middle" fill="#94a3b8" font-size="9.5">@PrePersist default</text>
+
+            <line x1="163" y1="69" x2="215" y2="69" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-st)"/>
+
+            <rect x="219" y="42" width="165" height="54" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="301" y="66" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="800">EM_ANALISE</text>
+            <text x="301" y="84" text-anchor="middle" fill="#94a3b8" font-size="9.5">Triagem Defesa Civil</text>
+
+            <line x1="384" y1="69" x2="438" y2="69" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-st)"/>
+
+            <rect x="442" y="38" width="235" height="62" rx="8" fill="#172554" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="559" y="62" text-anchor="middle" fill="#fbbf24" font-size="11.5" font-weight="800">ENCAMINHADA_DEFESA_CIVIL</text>
+            <text x="559" y="82" text-anchor="middle" fill="#cbd5e1" font-size="9.5">Ocorrencia.vincularProtocolo()</text>
+
+            <!-- Skip arrow ABERTA -> ENCAMINHADA -->
+            <path d="M 90 42 Q 320 6 555 38" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-st)"/>
+
+            <line x1="677" y1="69" x2="730" y2="69" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-st)"/>
+
+            <rect x="734" y="42" width="175" height="54" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="821" y="66" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="800">EM_ATENDIMENTO</text>
+            <text x="821" y="84" text-anchor="middle" fill="#94a3b8" font-size="9.5">Equipe em campo</text>
+
+            <path d="M 909 56 L 966 38" stroke="#10b981" stroke-width="2" marker-end="url(#arr-ok)"/>
+            <path d="M 909 82 L 966 118" stroke="#f43f5e" stroke-width="2" marker-end="url(#arr-no)"/>
+            <!-- Cancel from earlier states -->
+            <path d="M 90 96 L 90 144 L 966 144" fill="none" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-no)"/>
+            <text x="500" y="160" text-anchor="middle" fill="#fda4af" font-size="10">Qualquer estado não-terminal pode ir para CANCELADA (DELETE /api/ocorrencias/{id})</text>
+
+            <rect x="970" y="12" width="198" height="56" rx="8" fill="#062c22" stroke="#10b981" stroke-width="2"/>
+            <text x="1069" y="34" text-anchor="middle" fill="#6ee7b7" font-size="12" font-weight="800">RESOLVIDA [TERMINAL]</text>
+            <text x="1069" y="52" text-anchor="middle" fill="#cbd5e1" font-size="9.5">concluirAtendimento() · Imutável</text>
+
+            <rect x="970" y="96" width="198" height="56" rx="8" fill="#2a1622" stroke="#f43f5e" stroke-width="2"/>
+            <text x="1069" y="118" text-anchor="middle" fill="#fda4af" font-size="12" font-weight="800">CANCELADA [TERMINAL]</text>
+            <text x="1069" y="136" text-anchor="middle" fill="#cbd5e1" font-size="9.5">isTerminal() == true → 422</text>
+          </svg>
+        </div>
+
+        <div class="grid-2">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>StatusOcorrencia.java + ProtocoloDefesaCivil.java + equals/hashCode</span>
+              <span class="tag">Rich Domain Model</span>
+            </div>
+            <pre class="code-body code-sm" style="font-size:9.3px; line-height:1.21; padding:6px 10px;"><span class="cm">// StatusOcorrencia.java:31-52 — Matriz de transição (6x6)</span>
+<span class="kw">public boolean</span> <span class="fn">isTerminal</span>() {
+  <span class="kw">return this</span> == RESOLVIDA || <span class="kw">this</span> == CANCELADA;
+}
+<span class="kw">public boolean</span> <span class="fn">canTransitionTo</span>(<span class="tp">StatusOcorrencia</span> novoStatus) {
+  <span class="kw">if</span> (novoStatus == <span class="kw">null</span> || <span class="kw">this</span> == novoStatus) <span class="kw">return false</span>;
+  <span class="kw">return switch</span> (<span class="kw">this</span>) {
+    <span class="kw">case</span> ABERTA -&gt; novoStatus == EM_ANALISE
+      || novoStatus == ENCAMINHADA_DEFESA_CIVIL
+      || novoStatus == CANCELADA;
+    <span class="kw">case</span> EM_ANALISE -&gt; novoStatus == ENCAMINHADA_DEFESA_CIVIL
+      || novoStatus == EM_ATENDIMENTO || novoStatus == RESOLVIDA
+      || novoStatus == CANCELADA;
+    <span class="kw">case</span> ENCAMINHADA_DEFESA_CIVIL -&gt; novoStatus == EM_ATENDIMENTO
+      || novoStatus == RESOLVIDA || novoStatus == CANCELADA;
+    <span class="kw">case</span> EM_ATENDIMENTO -&gt;
+      novoStatus == RESOLVIDA || novoStatus == CANCELADA;
+    <span class="kw">case</span> RESOLVIDA, CANCELADA -&gt; <span class="kw">false</span>;
+  };
+}
+<span class="cm">// Vlad Mihalcea: Cidadao, Ocorrencia, ProtocoloDefesaCivil</span>
+<span class="ann">@Override</span> <span class="kw">public boolean</span> <span class="fn">equals</span>(<span class="tp">Object</span> o) {
+  <span class="kw">if</span> (<span class="kw">this</span> == o) <span class="kw">return true</span>;
+  <span class="kw">if</span> (!(o <span class="kw">instanceof</span> <span class="tp">Ocorrencia</span> that)) <span class="kw">return false</span>;
+  <span class="kw">return</span> id != <span class="kw">null</span> &amp;&amp; <span class="tp">Objects</span>.<span class="fn">equals</span>(id, that.<span class="fn">getId</span>());
+}
+<span class="ann">@Override</span> <span class="kw">public int</span> <span class="fn">hashCode</span>() { <span class="kw">return</span> <span class="fn">getClass</span>().<span class="fn">hashCode</span>(); }</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-emerald">
+              <div class="card-title" style="color:var(--emerald);">Por que Domínio Rico vs Modelo Anêmico?</div>
+              <ul class="tech-list">
+                <li><strong>Invariantes no Domínio:</strong> <code class="ic">Ocorrencia.vincularProtocolo()</code> e <code class="ic">ProtocoloDefesaCivil.concluirAtendimento()</code> sincronizam os dois lados da relação 1:1 e atualizam o status atomicamente.</li>
+                <li><strong>Estados Terminais Imutáveis:</strong> Tentar reabrir <code class="ic">RESOLVIDA</code> ou <code class="ic">CANCELADA</code> falha na máquina de estados → HTTP <code class="ic">422 Unprocessable Entity</code> (validado nas 36 células de <code class="ic">AdversarialDomainChallengeTest</code>).</li>
+              </ul>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que <code class="ic">equals</code>/<code class="ic">hashCode</code> de Vlad Mihalcea no Hibernate?</div>
+              <div style="font-size:11.8px; color:var(--text-secondary); line-height:1.36;">
+                Em entidades JPA, usar <code class="ic">Objects.hash(id)</code> quebra coleções <code class="ic">Set</code>/<code class="ic">Map</code> quando a entidade passa de transiente (<code class="ic">id == null</code>) para persistida, e usar <code class="ic">getClass() != o.getClass()</code> falha com <code class="ic">HibernateProxy</code> em associações <code class="ic">LAZY</code>. <code class="ic">instanceof</code> + <code class="ic">getClass().hashCode()</code> garante estabilidade total.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 3 (2/3)</strong> · <code class="ic">StatusOcorrencia</code> · <code class="ic">Ocorrencia</code> · <code class="ic">ProtocoloDefesaCivil</code></span>
+        <span>Próximo: Performance &amp; Consistência (LAZY, JOIN FETCH, Sequence Atômica)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 14 ==================== -->
+    <section class="slide" data-slide="14" data-block="Bloco 3 · Thomas" data-time="12:00–12:45"
+      data-notes="Camada 3 Parte 3 (12:00–12:45). Explicar FetchType.LAZY em todas as associações + JOIN FETCH anti-N+1 (findByIdWithDetails), @Transactional(readOnly = true) nos Services e geração concorrente lock-free via SELECT SEQ_PROTOCOLO_NUMERO.NEXTVAL FROM DUAL.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-amber">Bloco 3 · Thomas Fontes</span>
+            <span class="pill pill-emerald">Camada 3 · Domínio JPA &amp; Persistência (3/3)</span>
+          </div>
+          <h1 class="slide-title">Performance &amp; Consistência: <code class="ic">LAZY</code> + <code class="ic">JOIN FETCH</code>, <code class="ic">readOnly</code> &amp; Sequence Atômica</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Thomas Fontes (RM562254)</div>
+          <div class="time-chip">Slide 14 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>OcorrenciaRepository.java + ProtocoloDefesaCivilRepository.java</span>
+              <span class="tag">Anti-N+1 &amp; Lock-Free Sequence</span>
+            </div>
+            <pre class="code-body code-sm"><span class="cm">// OcorrenciaRepository.java:152-180 — 1 query SQL em vez de 1+2N</span>
+<span class="ann">@Query</span>(<span class="str">"SELECT o FROM Ocorrencia o "</span> +
+       <span class="str">"LEFT JOIN FETCH o.cidadao "</span> +
+       <span class="str">"LEFT JOIN FETCH o.protocolo "</span> +
+       <span class="str">"WHERE o.id = :id"</span>)
+<span class="tp">Optional</span>&lt;<span class="tp">Ocorrencia</span>&gt; <span class="fn">findByIdWithDetails</span>(<span class="ann">@Param</span>(<span class="str">"id"</span>) <span class="tp">Long</span> id);
+
+<span class="ann">@Query</span>(<span class="str">"SELECT o FROM Ocorrencia o WHERE "</span> +
+       <span class="str">"(:bairro IS NULL OR LOWER(o.bairro) = LOWER(:bairro)) AND "</span> +
+       <span class="str">"(:status IS NULL OR o.status = :status) AND "</span> +
+       <span class="str">"(:severidade IS NULL OR o.severidade = :severidade) AND "</span> +
+       <span class="str">"(:categoria IS NULL OR o.categoria = :categoria)"</span>)
+<span class="tp">Page</span>&lt;<span class="tp">Ocorrencia</span>&gt; <span class="fn">findWithFilters</span>(..., <span class="tp">Pageable</span> pageable);
+
+<span class="cm">// ProtocoloDefesaCivilRepository.java:110-111 — Oracle &amp; H2 MODE=Oracle</span>
+<span class="ann">@Query</span>(value = <span class="str">"SELECT SEQ_PROTOCOLO_NUMERO.NEXTVAL FROM DUAL"</span>, nativeQuery = <span class="kw">true</span>)
+<span class="tp">Long</span> <span class="fn">obterProximoNumeroSequencial</span>();</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-sky">
+              <div class="card-title" style="color:var(--sky);">1. Por que <code class="ic">FetchType.LAZY</code> + <code class="ic">JOIN FETCH</code> (Anti-N+1)?</div>
+              <div style="font-size:12px; color:var(--text-secondary); line-height:1.38;">
+                Na JPA, <code class="ic">@ManyToOne</code> e <code class="ic">@OneToOne</code> são <code class="ic">EAGER</code> por padrão — 20 ocorrências disparariam <strong>1 + 20 + 20 = 41 queries</strong>. Marcar todas as associações como <code class="ic">LAZY</code> e usar <code class="ic">JOIN FETCH</code> nos detalhes (<code class="ic">findByIdWithDetails</code>, <code class="ic">findByNumeroProtocoloWithDetails</code>) resolve o grafo em <strong>1 query</strong> sem <code class="ic">LazyInitializationException</code>.
+              </div>
+            </div>
+
+            <div class="card card-emerald">
+              <div class="card-title" style="color:var(--emerald);">2. Por que <code class="ic">@Transactional(readOnly = true)</code> nos Services?</div>
+              <div style="font-size:12px; color:var(--text-secondary); line-height:1.38;">
+                Aplicado em nível de classe em <code class="ic">CidadaoService</code>, <code class="ic">OcorrenciaService</code>, <code class="ic">ProtocoloService</code> e <code class="ic">OpenAiBoletimServiceImpl</code>: desliga <em>dirty checking</em> do Hibernate, poupa CPU/RAM e mantém a sessão aberta para <code class="ic">fromEntity()</code>. Mutações sobrescrevem com <code class="ic">@Transactional</code>.
+              </div>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">3. Por que <code class="ic">SEQ_PROTOCOLO_NUMERO.NEXTVAL FROM DUAL</code> vs <code class="ic">count()+1</code>?</div>
+              <div style="font-size:11.8px; color:var(--text-secondary); line-height:1.36;">
+                Em tempestades, duas threads executando <code class="ic">count() + 1</code> leem o mesmo número e colidem na <code class="ic">UK_PROTOCOLO_NUMERO</code>. A sequence Oracle garante incremento <strong>atômico e lock-free</strong> (provado com <strong>50 threads simultâneas</strong> em <code class="ic">AdversarialProtocoloConcurrencyStressTest</code>).
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 3 (3/3)</strong> · <code class="ic">OcorrenciaRepository</code> · <code class="ic">ProtocoloService</code> · <code class="ic">SEQ_PROTOCOLO_NUMERO</code></span>
+        <span>Próximo: Camada 5 — Mensageria Assíncrona RabbitMQ 3.13</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 15 ==================== -->
+    <section class="slide" data-slide="15" data-block="Bloco 3 · Thomas" data-time="12:45–13:45"
+      data-notes="Camada 5 Parte 1 (12:45–13:45). Mostrar a topologia RabbitMQ 3.13 (TopicExchange alerta.exchange, binding alerta.critico.#, fila durável alertas.criticos.queue), o filtro de elegibilidade isCriticaOuAlta() e por que TopicExchange vence DirectExchange para expansão municipal.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-amber">Bloco 3 · Thomas Fontes</span>
+            <span class="pill pill-amber">Camada 5 · Mensageria RabbitMQ (1/2)</span>
+          </div>
+          <h1 class="slide-title">Mensageria Assíncrona RabbitMQ 3.13 &amp; Topologia <code class="ic">TopicExchange</code></h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Thomas Fontes (RM562254)</div>
+          <div class="time-chip">Slide 15 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="svg-wrap" style="flex:0 0 190px; padding:6px;">
+          <svg viewBox="0 0 1180 180" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+            <defs>
+              <marker id="arr-mq1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+              <marker id="arr-mq2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b"/></marker>
+              <marker id="arr-mq3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b"/></marker>
+            </defs>
+            <rect x="10" y="34" width="188" height="82" rx="8" fill="#1e293b" stroke="#38bdf8"/>
+            <text x="104" y="56" text-anchor="middle" fill="#f8fafc" font-size="11.5" font-weight="700">POST /api/ocorrencias</text>
+            <text x="104" y="74" text-anchor="middle" fill="#cbd5e1" font-size="10">OcorrenciaService.criar()</text>
+            <text x="104" y="92" text-anchor="middle" fill="#6ee7b7" font-size="10">1. JPA save() + COMMIT</text>
+
+            <!-- BAIXA/MEDIA suppressed -->
+            <path d="M 104 116 L 104 152 L 320 152" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-mq3)"/>
+            <rect x="324" y="134" width="250" height="36" rx="6" fill="#111827" stroke="#475569"/>
+            <text x="449" y="156" text-anchor="middle" fill="#94a3b8" font-size="10">BAIXA / MEDIA → Suprimida (só DB)</text>
+
+            <!-- ALTA/CRITICA -> AFTER_COMMIT -->
+            <line x1="198" y1="68" x2="246" y2="68" stroke="#10b981" stroke-width="2" marker-end="url(#arr-mq1)"/>
+            <text x="222" y="58" text-anchor="middle" fill="#6ee7b7" font-size="9" font-weight="700">ALTA/CRIT</text>
+
+            <!-- Transaction Barrier -->
+            <line x1="252" y1="16" x2="252" y2="122" stroke="#10b981" stroke-width="2.5" stroke-dasharray="5 3"/>
+            <text x="252" y="12" text-anchor="middle" fill="#10b981" font-size="9.5" font-weight="800">AFTER_COMMIT</text>
+
+            <rect x="266" y="26" width="218" height="90" rx="8" fill="#062c22" stroke="#10b981"/>
+            <text x="375" y="48" text-anchor="middle" fill="#6ee7b7" font-size="11.5" font-weight="700">AlertaPublisherService</text>
+            <text x="375" y="66" text-anchor="middle" fill="#cbd5e1" font-size="9.5">@TransactionalEventListener</text>
+            <text x="375" y="82" text-anchor="middle" fill="#fbbf24" font-size="9.5" font-family="monospace">alerta.critico.&lt;bairro&gt;</text>
+            <text x="375" y="100" text-anchor="middle" fill="#fda4af" font-size="9.5">catch AmqpException → 201 OK</text>
+
+            <line x1="484" y1="68" x2="538" y2="68" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr-mq2)"/>
+            <text x="511" y="58" text-anchor="middle" fill="#fbbf24" font-size="9">JSON</text>
+
+            <!-- TopicExchange -->
+            <rect x="542" y="26" width="185" height="90" rx="8" fill="#2c1d09" stroke="#f59e0b" stroke-width="1.8"/>
+            <text x="634" y="48" text-anchor="middle" fill="#fbbf24" font-size="11.5" font-weight="800">TopicExchange</text>
+            <text x="634" y="68" text-anchor="middle" fill="#f8fafc" font-size="11" font-family="monospace">alerta.exchange</text>
+            <text x="634" y="88" text-anchor="middle" fill="#cbd5e1" font-size="9.5">durable=true · autoDelete=false</text>
+            <text x="634" y="104" text-anchor="middle" fill="#94a3b8" font-size="9">RabbitMQ 3.13 (:5672 / :15672)</text>
+
+            <line x1="727" y1="68" x2="788" y2="68" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr-mq2)"/>
+            <text x="757" y="56" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="monospace">alerta.critico.#</text>
+
+            <!-- Queue -->
+            <rect x="792" y="26" width="166" height="90" rx="8" fill="#1e293b" stroke="#f59e0b"/>
+            <text x="875" y="48" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="700">Queue Durável</text>
+            <text x="875" y="70" text-anchor="middle" fill="#f8fafc" font-size="10.5" font-family="monospace">alertas.criticos.queue</text>
+            <text x="875" y="92" text-anchor="middle" fill="#cbd5e1" font-size="9.5">QueueBuilder.durable()</text>
+            <text x="875" y="106" text-anchor="middle" fill="#94a3b8" font-size="9">Vol: rabbitmq_data</text>
+
+            <line x1="958" y1="68" x2="988" y2="68" stroke="#10b981" stroke-width="2" marker-end="url(#arr-mq1)"/>
+
+            <!-- Consumer -->
+            <rect x="992" y="26" width="178" height="90" rx="8" fill="#1e293b" stroke="#10b981"/>
+            <text x="1081" y="48" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="700">AlertaConsumerService</text>
+            <text x="1081" y="66" text-anchor="middle" fill="#cbd5e1" font-size="9.5">@RabbitListener</text>
+            <text x="1081" y="84" text-anchor="middle" fill="#cbd5e1" font-size="9.5">Sirenes &amp; Broadcast</text>
+            <text x="1081" y="102" text-anchor="middle" fill="#94a3b8" font-size="9">auto-startup: docker=true</text>
+          </svg>
+        </div>
+
+        <div class="grid-2">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>RabbitMQConfig.java:19-48</span>
+              <span class="tag">Topologia AMQP Durável</span>
+            </div>
+            <pre class="code-body code-sm"><span class="ann">@Configuration</span>
+<span class="kw">public class</span> <span class="tp">RabbitMQConfig</span> {
+  <span class="kw">public static final</span> <span class="tp">String</span> EXCHANGE_ALERTA = <span class="str">"alerta.exchange"</span>;
+  <span class="kw">public static final</span> <span class="tp">String</span> QUEUE_ALERTAS_CRITICOS = <span class="str">"alertas.criticos.queue"</span>;
+  <span class="kw">public static final</span> <span class="tp">String</span> ROUTING_KEY_CRITICO = <span class="str">"alerta.critico.#"</span>;
+
+  <span class="ann">@Bean</span> <span class="kw">public</span> <span class="tp">TopicExchange</span> <span class="fn">alertaExchange</span>() {
+    <span class="kw">return new</span> <span class="tp">TopicExchange</span>(EXCHANGE_ALERTA, <span class="kw">true</span>, <span class="kw">false</span>);
+  }
+  <span class="ann">@Bean</span> <span class="kw">public</span> <span class="tp">Queue</span> <span class="fn">alertasCriticosQueue</span>() {
+    <span class="kw">return</span> <span class="tp">QueueBuilder</span>.<span class="fn">durable</span>(QUEUE_ALERTAS_CRITICOS).<span class="fn">build</span>();
+  }
+  <span class="ann">@Bean</span> <span class="kw">public</span> <span class="tp">Binding</span> <span class="fn">bindingAlertasCriticos</span>(<span class="tp">Queue</span> q, <span class="tp">TopicExchange</span> ex) {
+    <span class="kw">return</span> <span class="tp">BindingBuilder</span>.<span class="fn">bind</span>(q).<span class="fn">to</span>(ex).<span class="fn">with</span>(ROUTING_KEY_CRITICO);
+  }
+  <span class="ann">@Bean</span> <span class="kw">public</span> <span class="tp">MessageConverter</span> <span class="fn">jackson2JsonMessageConverter</span>(<span class="tp">ObjectMapper</span> om) {
+    <span class="kw">return new</span> <span class="tp">Jackson2JsonMessageConverter</span>(om);
+  }
+}</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-amber">
+              <div class="card-title" style="color:var(--amber);">Por que <code class="ic">TopicExchange</code> + Durabilidade?</div>
+              <ul class="tech-list">
+                <li><strong>Roteamento Geográfico Extensível:</strong> <code class="ic">Normalizer</code> gera <code class="ic">alerta.critico.sao_joao_climaco</code>. Hoje <code class="ic">alerta.critico.#</code> entrega tudo na fila central; amanhã subprefeituras plugam novas filas por bairro sem alterar 1 linha do publicador (impossível com <code class="ic">DirectExchange</code> rígida).</li>
+                <li><strong>Sobrevivência a Quedas:</strong> Exchange e fila duráveis + volume <code class="ic">rabbitmq_data</code> preservam alertas se o container reiniciar na enchente.</li>
+              </ul>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que Disparo Seletivo (<code class="ic">isCriticaOuAlta()</code>)?</div>
+              <div style="font-size:11.8px; color:var(--text-secondary); line-height:1.36;">
+                Ocorrências <code class="ic">BAIXA</code>/<code class="ic">MEDIA</code> (bueiro entupido sem chuva) ficam no Oracle para zeladoria preventiva e Spring AI, sem poluir a fila de emergência em tempo real reservada a <code class="ic">ALTA</code> e <code class="ic">CRITICA</code>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 5 (1/2)</strong> · <code class="ic">RabbitMQConfig</code> · <code class="ic">OcorrenciaService</code> · <code class="ic">rabbitmq:3.13-management-alpine</code></span>
+        <span>Próximo: AFTER_COMMIT, Jackson2JsonMessageConverter &amp; Resiliência AmqpException</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 16 ==================== -->
+    <section class="slide" data-slide="16" data-block="Bloco 3 · Thomas" data-time="13:45–15:15"
+      data-notes="Camada 5 Parte 2 (13:45–15:15). Aprofundar @TransactionalEventListener(AFTER_COMMIT) contra dual-write/falsos alarmes (ADV-MQ-7), Jackson2JsonMessageConverter vs Java Serialization (CWE-502, UTF-8, @JsonIgnoreProperties), consumidor null-safe e posição honesta sobre DLQ como evolução futura. Transição para Vitória (15:15).">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-amber">Bloco 3 · Thomas Fontes</span>
+            <span class="pill pill-amber">Camada 5 · Mensageria RabbitMQ (2/2)</span>
+          </div>
+          <h1 class="slide-title"><code class="ic">AFTER_COMMIT</code>, JSON UTF-8 &amp; Resiliência a Queda do Broker (<code class="ic">AmqpException</code>)</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Thomas Fontes (RM562254)</div>
+          <div class="time-chip">Slide 16 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>AlertaPublisherService.java:36-63 + AlertaConsumerService.java:27-54</span>
+              <span class="tag">Circuit-Safe &amp; Null-Safe</span>
+            </div>
+            <pre class="code-body code-sm"><span class="cm">// AlertaPublisherService.java — Só dispara após COMMIT no Oracle/H2</span>
+<span class="ann">@TransactionalEventListener</span>(phase = <span class="tp">TransactionPhase</span>.AFTER_COMMIT, fallbackExecution = <span class="kw">true</span>)
+<span class="kw">public boolean</span> <span class="fn">publicarAlertaCritico</span>(<span class="tp">AlertaCriticoEvent</span> evento) {
+  <span class="kw">if</span> (evento == <span class="kw">null</span> || rabbitTemplate == <span class="kw">null</span>) <span class="kw">return false</span>;
+  <span class="kw">try</span> {
+    <span class="tp">String</span> rk = <span class="fn">construirRoutingKey</span>(evento.<span class="fn">bairro</span>()); <span class="cm">// alerta.critico.sao_joao_climaco</span>
+    rabbitTemplate.<span class="fn">convertAndSend</span>(<span class="tp">RabbitMQConfig</span>.EXCHANGE_ALERTA, rk, evento);
+    <span class="kw">return true</span>;
+  } <span class="kw">catch</span> (<span class="tp">AmqpException</span> e) { <span class="cm">// Broker offline NÃO dá rollback na ocorrência!</span>
+    log.<span class="fn">warn</span>(<span class="str">"Falha RabbitMQ #{}. DB preservado: {}"</span>, evento.<span class="fn">ocorrenciaId</span>(), e.<span class="fn">getMessage</span>());
+    <span class="kw">return false</span>;
+  }
+}
+<span class="cm">// AlertaConsumerService.java — Protegido contra null / poison pills</span>
+<span class="ann">@RabbitListener</span>(queues = <span class="tp">RabbitMQConfig</span>.QUEUE_ALERTAS_CRITICOS)
+<span class="kw">public void</span> <span class="fn">processarAlertaCritico</span>(<span class="tp">AlertaCriticoEvent</span> evento) {
+  <span class="kw">if</span> (evento == <span class="kw">null</span>) <span class="kw">return</span>; <span class="cm">// Fallbacks p/ bairro/severidade/titulo/cidadaoNome</span>
+  <span class="fn">registrarNoHistorico</span>(evento); <span class="cm">// CopyOnWriteArrayList (max 100 itens)</span>
+}</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-emerald">
+              <div class="card-title" style="color:var(--emerald);">1. Por que <code class="ic">AFTER_COMMIT</code> + <code class="ic">catch (AmqpException)</code> vs HTTP Síncrono?</div>
+              <ul class="tech-list">
+                <li><strong>Zero Falso Alarme (Anti Dual-Write):</strong> Publicar dentro da transação envia alerta mesmo se o <code class="ic">COMMIT</code> falhar depois. Com <code class="ic">AFTER_COMMIT</code>, rollback no banco <strong>descarta</strong> o evento (<code class="ic">ADV-MQ-7</code>).</li>
+                <li><strong>Load Leveling &amp; Circuit-Safe:</strong> Picos de tempestade são absorvidos na fila sem travar o Tomcat; se o RabbitMQ cair, o cidadão ainda recebe <code class="ic">201 Created</code> e a ocorrência entra nos boletins IA.</li>
+              </ul>
+            </div>
+
+            <div class="card card-sky">
+              <div class="card-title" style="color:var(--sky);">2. Por que <code class="ic">Jackson2JsonMessageConverter</code> vs Java Serialization?</div>
+              <ul class="tech-list">
+                <li><strong>Segurança (CWE-502) &amp; Poliglota:</strong> Elimina gadget-chain RCE de <code class="ic">ObjectInputStream</code> e permite consumidores em Python/Go/Node.</li>
+                <li><strong>Evolução &amp; UTF-8:</strong> <code class="ic">AlertaCriticoEvent</code> (10 campos) usa <code class="ic">@JsonIgnoreProperties(ignoreUnknown = true)</code> + ISO-8601 + suporte a emojis/acentos.</li>
+              </ul>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Posição Fiel sobre Poison Pills &amp; DLQ</div>
+              <div style="font-size:11.6px; color:var(--text-secondary); line-height:1.34;">
+                Hoje o consumidor valida nulos defensivamente (sem <code class="ic">DLQ/TTL</code> configurados em <code class="ic">RabbitMQConfig</code>); adicionar <code class="ic">deadLetterExchange</code> é a evolução natural ao plugar gateways SMS/Push externos.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Bloco 3</strong> · Thomas Fontes</span>
+        <span>Transição → <strong>Vitória Martins</strong>: Camada 7 (446 Testes) + Camada 8 (B2G, ROI 7:1, ODS)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 17 ==================== -->
+    <section class="slide" data-slide="17" data-block="Bloco 4 · Vitória" data-time="15:15–16:30"
+      data-notes="Bloco 4 inicia com Vitória Rodrigues Martins (15:15–16:30). Camada 7 Parte 1: Pirâmide combinada de 446 testes verificados no Surefire (366 padrão via mvn test em ~24.5s + 80 E2E em 4 Tiers via -Pe2e em ~32.8s) com estratégia 100% Zero-Daemon.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-violet">Bloco 4 · Vitória Martins</span>
+            <span class="pill pill-sky">Camada 7 · Testes &amp; Qualidade (1/2)</span>
+          </div>
+          <h1 class="slide-title">Pirâmide de 446 Testes (366 + 80) &amp; Estratégia 100% Zero-Daemon</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Vitória Rodrigues Martins (RM565160)</div>
+          <div class="time-chip">Slide 17 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2-wide-left">
+          <div class="svg-wrap" style="padding:8px;">
+            <svg viewBox="0 0 650 435" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+              <rect x="8" y="8" width="634" height="420" rx="10" fill="#0f172a" stroke="#a78bfa" stroke-opacity="0.45"/>
+              <text x="325" y="30" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="800">446 TESTES EXECUTADOS · 80 XMLs SUREFIRE · 0 FALHAS</text>
+
+              <!-- Top E2E -->
+              <text x="325" y="54" text-anchor="middle" fill="#38bdf8" font-size="10.5" font-weight="700">TOPO: 80 TESTES E2E OPAQUE-BOX — Profile -Pe2e (~32.8s)</text>
+              <polygon points="325,68 415,108 235,108" fill="#1e1b4b" stroke="#a78bfa" stroke-width="1.5"/>
+              <text x="325" y="99" text-anchor="middle" fill="#e9d5ff" font-size="9.5" font-weight="700">Tier 4 (5): Desastres ODS</text>
+
+              <polygon points="235,112 415,112 455,148 195,148" fill="#172554" stroke="#38bdf8" stroke-width="1.5"/>
+              <text x="325" y="134" text-anchor="middle" fill="#bae6fd" font-size="10" font-weight="700">Tier 3 (9): Pairwise Cross-Feature (T3-J01..09)</text>
+
+              <polygon points="195,152 455,152 495,190 155,190" fill="#261f12" stroke="#f59e0b" stroke-width="1.5"/>
+              <text x="325" y="175" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="700">Tier 2 (36): 6 Boundary Suites (RFC 7807, 422, Broker Down)</text>
+
+              <polygon points="155,194 495,194 535,232 115,232" fill="#062c22" stroke="#10b981" stroke-width="1.5"/>
+              <text x="325" y="217" text-anchor="middle" fill="#a7f3d0" font-size="10" font-weight="700">Tier 1 (30): 6 Feature Suites (Auth, Cid, Ocor, Prot, MQ, AI)</text>
+
+              <!-- Base 366 -->
+              <rect x="44" y="246" width="562" height="90" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+              <text x="325" y="266" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="800">BASE &amp; MEIO: 366 TESTES RÁPIDOS — mvn test padrão (~24.5s)</text>
+              <text x="58" y="288" fill="#cbd5e1" font-size="10.5">• Integração &amp; Adversariais: domain (172) · security RBAC/IDOR/Actuator (100)</text>
+              <text x="58" y="306" fill="#cbd5e1" font-size="10.5">• Unitários &amp; Slices: @WebMvcTest Controllers (46) · Mockito Services (33)</text>
+              <text x="58" y="324" fill="#cbd5e1" font-size="10.5">• Módulos: RabbitMQ (6) · BoletimIA (6) · Seed &amp; Boot (3) · 0 mocks de permissão</text>
+
+              <!-- Zero-Daemon Box -->
+              <rect x="24" y="346" width="602" height="72" rx="8" fill="#0b1324" stroke="#10b981"/>
+              <text x="36" y="366" fill="#10b981" font-size="10.5" font-weight="800">AMBIENTE ISOLADO ZERO-DAEMON (@ActiveProfiles("test") · application-test.yml)</text>
+              <text x="36" y="384" fill="#cbd5e1" font-size="10" font-family="monospace">[DB] H2 MODE=Oracle (valida schema.sql + DUAL) | [AMQP] auto-startup:false + @MockBean RabbitTemplate</text>
+              <text x="36" y="402" fill="#cbd5e1" font-size="10" font-family="monospace">[IA] api-key: mock-key-test (FALLBACK)         | [Auth] JwtTestHelper persiste usuários reais no H2</text>
+            </svg>
+          </div>
+
+          <div class="col-stack">
+            <div class="code-panel">
+              <div class="code-header">
+                <span>pom.xml:169-210 (Separação Surefire &amp; Profile -Pe2e)</span>
+                <span class="tag">Feedback Rápido vs Full</span>
+              </div>
+              <pre class="code-body code-sm"><span class="cm">&lt;!-- Execução padrão: 366 testes (~24.5s) --&gt;</span>
+&lt;<span class="kw">plugin</span>&gt;
+  &lt;<span class="tp">artifactId</span>&gt;maven-surefire-plugin&lt;/<span class="tp">artifactId</span>&gt;
+  &lt;<span class="tp">configuration</span>&gt;
+    &lt;<span class="tp">argLine</span>&gt;${argLine}&lt;/<span class="tp">argLine</span>&gt; <span class="cm">&lt;!-- ByteBuddy JDK 21 --&gt;</span>
+    &lt;<span class="tp">excludes</span>&gt;&lt;<span class="tp">exclude</span>&gt;**/*E2ETest.java&lt;/<span class="tp">exclude</span>&gt;&lt;/<span class="tp">excludes</span>&gt;
+  &lt;/<span class="tp">configuration</span>&gt;
+&lt;/<span class="kw">plugin</span>&gt;
+<span class="cm">&lt;!-- Profile -Pe2e: 446 testes (~32.8s) --&gt;</span>
+&lt;<span class="kw">profile</span>&gt;
+  &lt;<span class="tp">id</span>&gt;e2e&lt;/<span class="tp">id</span>&gt;
+  &lt;<span class="tp">build</span>&gt;&lt;<span class="tp">plugins</span>&gt;&lt;<span class="tp">plugin</span>&gt;
+    &lt;<span class="tp">artifactId</span>&gt;maven-surefire-plugin&lt;/<span class="tp">artifactId</span>&gt;
+    &lt;<span class="tp">configuration</span>&gt;&lt;<span class="tp">excludes</span> combine.self=<span class="str">"override"</span>/&gt;&lt;/<span class="tp">configuration</span>&gt;
+  &lt;/<span class="tp">plugin</span>&gt;&lt;/<span class="tp">plugins</span>&gt;&lt;/<span class="tp">build</span>&gt;
+&lt;/<span class="kw">profile</span>&gt;</pre>
+            </div>
+
+            <div class="why-box" style="flex:1;">
+              <div class="why-label">Por que Pirâmide Combinada + Zero-Daemon H2 <code class="ic">MODE=Oracle</code>?</div>
+              <ul class="tech-list">
+                <li><strong>Velocidade vs Confiança Sistêmica:</strong> Os 366 testes validam regras em milissegundos; os 80 E2E sobem Tomcat real (<code class="ic">RANDOM_PORT</code> + <code class="ic">TestRestTemplate</code> + <code class="ic">JdkClientHttpRequestFactory</code> para HTTP <code class="ic">PATCH</code>) provando filtros, JPA e RFC 7807 juntos.</li>
+                <li><strong>Sem containers de 1 GB no CI:</strong> H2 <code class="ic">MODE=Oracle</code> valida DDL e <code class="ic">SEQ_PROTOCOLO_NUMERO.NEXTVAL FROM DUAL</code> sem Oracle nem RabbitMQ rodando.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 7 (1/2)</strong> · <code class="ic">mvn test</code> (366) · <code class="ic">mvn clean test -Pe2e -B</code> (446) · <code class="ic">BaseE2ETest</code></span>
+        <span>Próximo: Testes Adversariais &amp; 4 Tiers E2E (Cenários Reais SP)</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 18 ==================== -->
+    <section class="slide" data-slide="18" data-block="Bloco 4 · Vitória" data-time="16:30–17:45"
+      data-notes="Camada 7 Parte 2 (16:30–17:45). Mostrar código real dos testes adversariais (50 threads simultâneas com CountDownLatch em SEQ_PROTOCOLO_NUMERO, Token Fantasma 401, Broker Offline sem rollback) e os 5 cenários reais do Tier 4 em São Paulo.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-violet">Bloco 4 · Vitória Martins</span>
+            <span class="pill pill-rose">Camada 7 · Testes &amp; Qualidade (2/2)</span>
+          </div>
+          <h1 class="slide-title">Testes Adversariais (50 Threads, Token Fantasma, IDOR) &amp; 4 Tiers E2E</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Vitória Rodrigues Martins (RM565160)</div>
+          <div class="time-chip">Slide 18 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="code-panel">
+            <div class="code-header">
+              <span>AdversarialProtocoloConcurrencyStressTest + AdversarialSecurityChallengerTest</span>
+              <span class="tag">Ataques Empíricos</span>
+            </div>
+            <pre class="code-body code-sm"><span class="cm">// ADV-SEQ-1: 50 threads disparadas no mesmo nanossegundo</span>
+<span class="kw">int</span> threadCount = <span class="num">50</span>;
+<span class="tp">CountDownLatch</span> readyLatch = <span class="kw">new</span> <span class="tp">CountDownLatch</span>(threadCount);
+<span class="tp">CountDownLatch</span> startLatch = <span class="kw">new</span> <span class="tp">CountDownLatch</span>(<span class="num">1</span>);
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; threadCount; i++) {
+  futures.<span class="fn">add</span>(executor.<span class="fn">submit</span>(() -&gt; {
+    readyLatch.<span class="fn">countDown</span>(); startLatch.<span class="fn">await</span>();
+    <span class="kw">return</span> protocoloRepository.<span class="fn">obterProximoNumeroSequencial</span>();
+  }));
+}
+readyLatch.<span class="fn">await</span>(<span class="num">5</span>, <span class="tp">TimeUnit</span>.SECONDS); startLatch.<span class="fn">countDown</span>();
+<span class="fn">assertEquals</span>(threadCount, numerosGerados.<span class="fn">size</span>()); <span class="cm">// 50 únicos, 0 colisões!</span>
+
+<span class="cm">// Token Fantasma: JWT assinado c/ chave real, email ausente no DB → 401</span>
+<span class="tp">String</span> tokenFantasma = <span class="tp">JWT</span>.<span class="fn">create</span>().<span class="fn">withIssuer</span>(<span class="str">"alertacom-api"</span>)
+    .<span class="fn">withSubject</span>(<span class="str">"fantasma@inexistente.com"</span>).<span class="fn">withClaim</span>(<span class="str">"role"</span>, <span class="str">"ROLE_GESTOR"</span>).<span class="fn">sign</span>(alg);
+mockMvc.<span class="fn">perform</span>(<span class="fn">get</span>(<span class="str">"/api/cidadaos"</span>).<span class="fn">header</span>(<span class="str">"Authorization"</span>, <span class="str">"Bearer "</span> + tokenFantasma))
+    .<span class="fn">andExpect</span>(<span class="fn">status</span>().<span class="fn">isUnauthorized</span>()).<span class="fn">andExpect</span>(<span class="fn">jsonPath</span>(<span class="str">"$.status"</span>, <span class="fn">is</span>(<span class="num">401</span>)));</pre>
+          </div>
+
+          <div class="col-stack">
+            <div class="card card-violet" style="padding:10px 12px;">
+              <div class="card-title" style="color:var(--violet);">Matriz Adversarial &amp; 4 Tiers E2E (80 Testes)</div>
+              <ul class="tech-list">
+                <li><strong>Segurança Adversarial:</strong> <code class="ic">IdorAndJwtAdversarialStressTest</code> (anti-enumeração <code class="ic">403</code>, <code class="ic">cidadaoId</code> forjado), <code class="ic">ActuatorAdversarialStressTest</code> (<code class="ic">DENY</code> fora de <code class="ic">dev</code>), <code class="ic">SecurityDevProfileIntegrationTest</code>.</li>
+                <li><strong>Tier 1 (30) &amp; Tier 2 (36):</strong> Happy paths + fronteiras RFC 7807 (<code class="ic">T2_RABBIT_01</code> simula <code class="ic">AmqpConnectException</code> mantendo <code class="ic">201 Created</code>; <code class="ic">T2_AI_06</code> simula falha OpenAI retornando <code class="ic">200 OK</code>).</li>
+                <li><strong>Tier 3 Pairwise (9):</strong> Jornadas combinatórias <code class="ic">T3-J01..T3-J09</code> (Auth+AMQP+Protocolo+IA).</li>
+                <li><strong>Tier 4 Desastres SP (5 — <code class="ic">RealWorldDisasterScenariosE2ETest</code>):</strong> <strong>Vila Prudente</strong> (alagamento), <strong>Jardim São Luís</strong> (encosta), <strong>Pinheiros</strong> (ambulâncias), <strong>Mooca</strong> (zeladoria pré-chuva), <strong>Itaquera</strong> (rajada simultânea).</li>
+              </ul>
+            </div>
+
+            <div class="why-box">
+              <div class="why-label">Por que Testes Adversariais além de CRUD?</div>
+              <div style="font-size:11.8px; color:var(--text-secondary); line-height:1.36;">
+                Testes normais provam que a API funciona no caminho feliz; testes adversariais provam que ela <strong>não quebra sob ataque (IDOR/escalada), rajada concorrente (50 threads) ou apagão de serviços externos</strong> (OpenAI/RabbitMQ).
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 7 (2/2)</strong> · <code class="ic">Adversarial*Test</code> · <code class="ic">RealWorldDisasterScenariosE2ETest</code></span>
+        <span>Próximo: Camada 8 — Modelo B2G SaaS, Zero CAPEX IoT &amp; ROI Social 7:1</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 19 ==================== -->
+    <section class="slide" data-slide="19" data-block="Bloco 4 · Vitória" data-time="17:45–18:50"
+      data-notes="Camada 8 Parte 1 (17:45–18:50). Conectar a dor urbana (>8M em risco, >R$5B/ano) ao modelo SaaS B2G (3 planos) sem CAPEX de hardware IoT e explicar concretamente os 3 mecanismos no código Java que sustentam o ROI social 7:1.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-violet">Bloco 4 · Vitória Martins</span>
+            <span class="pill pill-emerald">Camada 8 · Negócio &amp; Impacto (1/2)</span>
+          </div>
+          <h1 class="slide-title">Do Apagão de Comunicação ao SaaS B2G: Zero CAPEX IoT &amp; ROI Social 7:1</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Vitória Rodrigues Martins (RM565160)</div>
+          <div class="time-chip">Slide 19 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="kpi-box"><div class="kpi-val" style="color:var(--rose);">&gt; 8 Milhões</div><div class="kpi-lbl">Brasileiros em áreas de risco mapeadas</div></div>
+          <div class="kpi-box"><div class="kpi-val" style="color:var(--amber);">&gt; R$ 5 Bi / ano</div><div class="kpi-lbl">Prejuízos anuais com enchentes no Brasil</div></div>
+          <div class="kpi-box"><div class="kpi-val" style="color:var(--emerald);">ROI 7 : 1</div><div class="kpi-lbl">R$ 1 em prevenção economiza até R$ 7 em resposta</div></div>
+        </div>
+
+        <div class="grid-3" style="flex:1; min-height:0;">
+          <div class="card card-rose">
+            <div class="card-title" style="color:var(--rose);">1. Tese CitizenTech &amp; Zero Hardware IoT</div>
+            <ul class="tech-list">
+              <li><strong>Dor Real:</strong> O bueiro entupido ou a trinca no muro são vistos horas antes pelo morador, mas o poder público só descobre após a tragédia.</li>
+              <li><strong>Crowdsensing Georreferenciado:</strong> Smartphones da população substituem sensores IoT de dezenas de milhões de reais (<code class="ic">latitude</code>/<code class="ic">longitude</code>, 7 <code class="ic">CategoriaOcorrencia</code>, 4 <code class="ic">SeveridadeOcorrencia</code>).</li>
+              <li><strong>Gratuito ao Cidadão:</strong> Nunca cobra da ponta vulnerável; o comprador institucional é o Poder Público (Prefeituras/Defesa Civil).</li>
+            </ul>
+          </div>
+
+          <div class="card card-sky">
+            <div class="card-title" style="color:var(--sky);">2. SaaS B2G Escalonável (3 Planos)</div>
+            <ul class="tech-list">
+              <li><strong>Município Resiliente</strong> (até 100 mil hab.): implantação enxuta compatível com <code class="ic">FALLBACK_DETERMINISTICO</code> (sem custo obrigatório de tokens OpenAI).</li>
+              <li><strong>Metrópole Conectada</strong> (100 mil – 1 mi hab.): Oracle 23c, JWT Stateless horizontal e roteamento AMQP por bairro (<code class="ic">alerta.critico.&lt;bairro&gt;</code>).</li>
+              <li><strong>Consórcio Intermunicipal / Estadual:</strong> <code class="ic">TopicExchange</code> (<code class="ic">alerta.exchange</code>) + wildcard <code class="ic">alerta.critico.#</code> plugando múltiplos órgãos sem alterar a API core.</li>
+            </ul>
+          </div>
+
+          <div class="card card-emerald">
+            <div class="card-title" style="color:var(--emerald);">3. Como o Código Sustenta o ROI 7:1</div>
+            <ul class="tech-list">
+              <li><strong>Prevenção Barata (<code class="ic">BAIXA</code>/<code class="ic">MEDIA</code>):</strong> Não polui a fila crítica (<code class="ic">isCriticaOuAlta()</code>), mas alimenta o <code class="ic">BoletimIaService</code> para limpar bueiros antes da chuva (cenário Mooca <code class="ic">T4-SC04</code>).</li>
+              <li><strong>Despacho em Milissegundos (<code class="ic">ALTA</code>/<code class="ic">CRITICA</code>):</strong> <code class="ic">AFTER_COMMIT</code> + RabbitMQ reduz resposta de horas para segundos.</li>
+              <li><strong>Auditabilidade Anti-Desperdício:</strong> <code class="ic">SEQ_PROTOCOLO_NUMERO</code> (<code class="ic">DEF-YYYY-NNNNN</code>) + SLA <code class="ic">@Future</code> + Anti-IDOR evitam trotes e litigiosidade.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>Camada 8 (1/2)</strong> · Modelo B2G SaaS · Zero CAPEX IoT · Rastreabilidade do ROI 7:1</span>
+        <span>Próximo: Impacto ESG (ODS 11 &amp; 13), Diagrama de Valor &amp; Síntese Final</span>
+      </footer>
+    </section>
+
+    <!-- ==================== SLIDE 20 ==================== -->
+    <section class="slide" data-slide="20" data-block="Bloco 4 · Vitória" data-time="18:50–20:00"
+      data-notes="Slide Final (18:50–20:00). Conectar as 8 camadas no diagrama causal de valor até ODS 11.5 e ODS 13.1, reforçar os links oficiais (GitHub e Pitch 5 min) e encerrar exatamente aos 20:00 com a frase-síntese.">
+      <header class="slide-header">
+        <div class="header-left">
+          <div class="eyebrow-row">
+            <span class="pill pill-violet">Bloco 4 · Vitória Martins</span>
+            <span class="pill pill-emerald">Camada 8 · Impacto ESG &amp; Síntese Final (2/2)</span>
+          </div>
+          <h1 class="slide-title">Impacto ESG (ODS 11.5 &amp; ODS 13.1), Valor das 8 Camadas &amp; Encerramento</h1>
+        </div>
+        <div class="header-right">
+          <div class="presenter-chip">Vitória Rodrigues Martins (RM565160)</div>
+          <div class="time-chip">Slide 20 / 20</div>
+        </div>
+      </header>
+
+      <div class="slide-body">
+        <div class="svg-wrap" style="flex:0 0 210px; padding:6px;">
+          <svg viewBox="0 0 1180 198" xmlns="http://www.w3.org/2000/svg" font-family="Inter, sans-serif">
+            <defs>
+              <marker id="arr-v1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/></marker>
+              <marker id="arr-v2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker>
+            </defs>
+            <!-- Col 1 -->
+            <rect x="10" y="14" width="235" height="170" rx="9" fill="#2a1622" stroke="#f43f5e"/>
+            <text x="22" y="36" fill="#fda4af" font-size="11" font-weight="800">1. GARGALO URBANO</text>
+            <rect x="22" y="48" width="211" height="54" rx="6" fill="#1e293b"/>
+            <text x="32" y="70" fill="#f8fafc" font-size="10.5" font-weight="700">&gt; 8M em risco | &gt; R$ 5 Bi/ano</text>
+            <text x="32" y="88" fill="#cbd5e1" font-size="9.5">Apagão entre rua e Defesa Civil</text>
+            <rect x="22" y="112" width="211" height="54" rx="6" fill="#1e293b"/>
+            <text x="32" y="134" fill="#f8fafc" font-size="10.5" font-weight="700">Barreira IoT Tradicional</text>
+            <text x="32" y="152" fill="#cbd5e1" font-size="9.5">CAPEX proibitivo em hardware</text>
+
+            <line x1="245" y1="99" x2="277" y2="99" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-v1)"/>
+
+            <!-- Col 2 -->
+            <rect x="281" y="14" width="285" height="170" rx="9" fill="#0f172a" stroke="#38bdf8"/>
+            <text x="293" y="36" fill="#38bdf8" font-size="11" font-weight="800">2. MOTOR JAVA 21 + BOOT 3.3.5</text>
+            <rect x="293" y="46" width="261" height="38" rx="6" fill="#1e293b"/>
+            <text x="303" y="69" fill="#e2e8f0" font-size="10">CitizenTech Georreferenciado + @Valid + RFC 7807</text>
+            <rect x="293" y="90" width="261" height="38" rx="6" fill="#1e293b"/>
+            <text x="303" y="113" fill="#fbbf24" font-size="10">RabbitMQ AFTER_COMMIT · alerta.critico.&lt;bairro&gt;</text>
+            <rect x="293" y="134" width="261" height="38" rx="6" fill="#1e293b"/>
+            <text x="303" y="157" fill="#a78bfa" font-size="10">Spring AI Dual-Engine (OpenAI + Fallback Offline)</text>
+
+            <line x1="566" y1="99" x2="598" y2="99" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr-v1)"/>
+
+            <!-- Col 3 -->
+            <rect x="602" y="14" width="258" height="170" rx="9" fill="#0f172a" stroke="#a78bfa"/>
+            <text x="614" y="36" fill="#a78bfa" font-size="11" font-weight="800">3. GOVERNANÇA &amp; QUALIDADE</text>
+            <rect x="614" y="48" width="234" height="56" rx="6" fill="#1e293b"/>
+            <text x="624" y="70" fill="#f8fafc" font-size="10.5" font-weight="700">SEQ_PROTOCOLO_NUMERO</text>
+            <text x="624" y="88" fill="#cbd5e1" font-size="9.5">DEF-YYYY-NNNNN + SLA @Future + Imutável</text>
+            <rect x="614" y="114" width="234" height="56" rx="6" fill="#1e293b"/>
+            <text x="624" y="136" fill="#f8fafc" font-size="10.5" font-weight="700">Stateless JWT + RBAC + Anti-IDOR</text>
+            <text x="624" y="154" fill="#6ee7b7" font-size="9.5">446 Testes (366 + 80 E2E) · 0 Falhas</text>
+
+            <line x1="860" y1="99" x2="892" y2="99" stroke="#10b981" stroke-width="2" marker-end="url(#arr-v2)"/>
+
+            <!-- Col 4 -->
+            <rect x="896" y="14" width="274" height="170" rx="9" fill="#062c22" stroke="#10b981" stroke-width="1.6"/>
+            <text x="908" y="36" fill="#10b981" font-size="11" font-weight="800">4. VALOR B2G &amp; IMPACTO ESG</text>
+            <rect x="908" y="46" width="250" height="38" rx="6" fill="#0f2922"/>
+            <text x="918" y="69" fill="#f8fafc" font-size="10.5" font-weight="700">SaaS B2G (3 Planos) · ROI Social 7:1</text>
+            <rect x="908" y="90" width="250" height="38" rx="6" fill="#0f2922"/>
+            <text x="918" y="113" fill="#6ee7b7" font-size="10">ODS 11.5: Redução de vítimas e periferias</text>
+            <rect x="908" y="134" width="250" height="38" rx="6" fill="#0f2922"/>
+            <text x="918" y="157" fill="#6ee7b7" font-size="10">ODS 13.1: Adaptação climática (0% downtime)</text>
+          </svg>
+        </div>
+
+        <div class="grid-2">
+          <div class="card card-emerald">
+            <div class="card-title" style="color:var(--emerald);">Evidência Direta nos ODS 11 &amp; 13 da ONU</div>
+            <ul class="tech-list">
+              <li><strong>ODS 11 · Meta 11.5 (Cidades Resilientes):</strong> Democratiza o alerta em áreas vulneráveis (cenários Tier 4: Vila Prudente, Jardim São Luís, Pinheiros, Mooca, Itaquera) e oferece transparência pública sem login em <code class="ic">GET /api/protocolos/numero/{num}</code>.</li>
+              <li><strong>ODS 13 · Meta 13.1 (Ação Climática):</strong> Converte relatos em boletins hiperlocais via <strong>Spring AI Dual-Engine</strong> e mantém operação contínua em apagões (<code class="ic">FALLBACK_DETERMINISTICO</code> + <code class="ic">catch AmqpException</code>).</li>
+            </ul>
+          </div>
+
+          <div class="card card-sky" style="justify-content:space-between;">
+            <div>
+              <div class="card-title" style="color:var(--sky);">Encerramento · Equipe 2TDSR (FIAP GS 2026/2)</div>
+              <div style="font-size:12px; color:var(--text-secondary); line-height:1.45; margin-top:4px;">
+                <strong>Matheus Pereira Molina</strong> (<code class="ic">RM563399</code>) · <strong>Gabriel Maciel Alves de Oliveira</strong> (<code class="ic">RM562795</code>)<br>
+                <strong>Thomas Fontes</strong> (<code class="ic">RM562254</code>) · <strong>Vitória Rodrigues Martins</strong> (<code class="ic">RM565160</code>)
+              </div>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--sky); margin-top:6px;">
+                GitHub: https://github.com/Gabriel-Maciel06/GS-Java (main)<br>
+                Vídeo Pitch (5 min): https://youtu.be/xUBQAG9ehek
+              </div>
+            </div>
+            <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:8px 12px; font-size:13px; font-weight:700; color:#6ee7b7; text-align:center;">
+              "Quando o cidadão fala, a cidade escuta e a Defesa Civil salva vidas."
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="slide-footer">
+        <span><strong>AlertaCom API</strong> · Java 21 + Spring Boot 3.3.5 + Oracle 23c + RabbitMQ + Spring AI</span>
+        <span>Obrigado! Perguntas &amp; Discussão Técnica</span>
+      </footer>
+    </section>
+
+  </div>
+</main>
+
+<!-- Presenter Quick-Notes Drawer -->
+<aside id="notes-drawer" aria-live="polite">
+  <h3>Notas Rápidas do Apresentador (<span id="notes-meta"></span>)</h3>
+  <p id="notes-text"></p>
+</aside>
+
+<!-- Grid Overview Overlay -->
+<div id="grid-overlay" role="dialog" aria-label="Visão Geral dos 20 Slides">
+  <div class="grid-header">
+    <div>
+      <h2 style="font-size:18px; font-weight:800;">Mapa Completo da Apresentação — 20 Slides</h2>
+      <div style="font-size:12px; color:var(--text-muted);">Clique em qualquer slide para navegar · Tecla <code class="ic">G</code> ou <code class="ic">Esc</code> para fechar</div>
+    </div>
+    <button class="dock-btn" id="btn-close-grid">Fechar (Esc)</button>
+  </div>
+  <div id="overview-cards"></div>
+</div>
+
+<!-- Bottom Control Dock -->
+<nav id="control-dock" aria-label="Controles da Apresentação">
+  <div class="dock-group">
+    <button class="dock-btn" id="btn-prev" title="Anterior (←)">◀ Anterior</button>
+    <button class="dock-btn" id="btn-next" title="Próximo (→ / Espaço)">Próximo ▶</button>
+    <select id="slide-select" aria-label="Selecionar Slide"></select>
+  </div>
+  <div class="dock-group">
+    <span class="dock-meta" id="dock-status">Slide 1/20 · Bloco 1</span>
+  </div>
+  <div class="dock-group">
+    <button class="dock-btn" id="btn-notes" title="Notas Rápidas (N)">Notas (N)</button>
+    <button class="dock-btn" id="btn-grid" title="Visão Geral (G)">Grade (G)</button>
+    <button class="dock-btn" id="btn-full" title="Tela Cheia (F)">Tela Cheia (F)</button>
+    <button class="dock-btn" id="btn-print" title="Imprimir / Salvar PDF">PDF</button>
+  </div>
+</nav>
+
+<script>
+(function() {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const stage = document.getElementById('deck-stage');
+  const select = document.getElementById('slide-select');
+  const statusEl = document.getElementById('dock-status');
+  const progressFill = document.getElementById('progress-fill');
+  const gridOverlay = document.getElementById('grid-overlay');
+  const overviewCards = document.getElementById('overview-cards');
+  const notesDrawer = document.getElementById('notes-drawer');
+  const notesMeta = document.getElementById('notes-meta');
+  const notesText = document.getElementById('notes-text');
+  const btnNotes = document.getElementById('btn-notes');
+  const btnGrid = document.getElementById('btn-grid');
+
+  let current = 0;
+
+  // Populate dropdown & grid overview
+  slides.forEach((sl, idx) => {
+    const titleEl = sl.querySelector('h1.slide-title') || sl.querySelector('.hero-title');
+    const title = titleEl ? titleEl.textContent.trim() : ('Slide ' + (idx + 1));
+    const block = sl.dataset.block || '';
+    const time = sl.dataset.time || '';
+
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = `${String(idx + 1).padStart(2, '0')}. ${title}`;
+    select.appendChild(opt);
+
+    const card = document.createElement('div');
+    card.className = 'ov-card';
+    card.innerHTML = `<div class="ov-num">SLIDE ${String(idx + 1).padStart(2, '0')}</div>
+      <div class="ov-title">${title}</div>
+      <div class="ov-meta">${block}</div>`;
+    card.addEventListener('click', () => {
+      goTo(idx);
+      toggleGrid(false);
+    });
+    overviewCards.appendChild(card);
+  });
+
+  function scaleStage() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight - 46;
+    const scale = Math.min((vw - 24) / 1280, (vh - 12) / 720);
+    stage.style.transform = `scale(${Math.max(0.25, scale)})`;
+  }
+
+  function goTo(index) {
+    if (index < 0) index = 0;
+    if (index >= slides.length) index = slides.length - 1;
+    slides[current].classList.remove('active');
+    current = index;
+    slides[current].classList.add('active');
+    select.value = String(current);
+
+    const sl = slides[current];
+    const block = sl.dataset.block || '';
+    const time = sl.dataset.time || '';
+    statusEl.textContent = `Slide ${current + 1}/${slides.length} · ${block}`;
+    progressFill.style.width = `${((current + 1) / slides.length) * 100}%`;
+    notesMeta.textContent = `Slide ${current + 1} · ${block}`;
+    notesText.textContent = sl.dataset.notes || '';
+
+    Array.from(overviewCards.children).forEach((c, i) => {
+      c.classList.toggle('current', i === current);
+    });
+    if (location.hash !== `#${current + 1}`) {
+      history.replaceState(null, '', `#${current + 1}`);
+    }
+  }
+
+  function toggleGrid(force) {
+    const open = typeof force === 'boolean' ? force : !gridOverlay.classList.contains('open');
+    gridOverlay.classList.toggle('open', open);
+    btnGrid.classList.toggle('active', open);
+  }
+
+  function toggleNotes(force) {
+    const open = typeof force === 'boolean' ? force : !notesDrawer.classList.contains('open');
+    notesDrawer.classList.toggle('open', open);
+    btnNotes.classList.toggle('active', open);
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen && document.exitFullscreen();
+    }
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+  select.addEventListener('change', (e) => goTo(Number(e.target.value)));
+  btnGrid.addEventListener('click', () => toggleGrid());
+  document.getElementById('btn-close-grid').addEventListener('click', () => toggleGrid(false));
+  btnNotes.addEventListener('click', () => toggleNotes());
+  document.getElementById('btn-full').addEventListener('click', toggleFullscreen);
+  document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT')) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      if (!gridOverlay.classList.contains('open')) goTo(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      if (!gridOverlay.classList.contains('open')) goTo(current - 1);
+    } else if (e.key === 'Home') {
+      goTo(0);
+    } else if (e.key === 'End') {
+      goTo(slides.length - 1);
+    } else if (e.key === 'g' || e.key === 'G') {
+      toggleGrid();
+    } else if (e.key === 'n' || e.key === 'N') {
+      toggleNotes();
+    } else if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    } else if (e.key === 'Escape') {
+      toggleGrid(false);
+      toggleNotes(false);
+    }
+  });
+
+  window.addEventListener('resize', scaleStage);
+  scaleStage();
+
+  const hashMatch = location.hash.match(/^#(\d+)$/);
+  if (hashMatch) {
+    const idx = Number(hashMatch[1]) - 1;
+    if (idx >= 0 && idx < slides.length) goTo(idx);
+    else goTo(0);
+  } else {
+    goTo(0);
+  }
+})();
+</script>
+</body>
+</html>
